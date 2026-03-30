@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ThemeToggle from './theme-toggle'
+import LanguageToggle from './language-toggle'
+import { useI18n } from '@/lib/i18n-context'
 import {
   LayoutDashboard,
   Upload,
@@ -19,18 +21,20 @@ import {
 
 interface NavItem {
   href: string
-  label: string
+  labelKey: keyof ReturnType<typeof useI18n>['t']
   icon: React.ComponentType<{ size?: number; className?: string }>
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/ai-search', label: 'AI Search', icon: Sparkles },
-  { href: '/bookmarks', label: 'Browse', icon: Search },
-  { href: '/mindmap', label: 'Mindmap', icon: GitBranch },
-  { href: '/import', label: 'Import', icon: Upload },
-  { href: '/settings', label: 'Settings', icon: Settings },
-]
+function getNavItems(t: ReturnType<typeof useI18n>['t']): NavItem[] {
+  return [
+    { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
+    { href: '/ai-search', labelKey: 'aiSearch', icon: Sparkles },
+    { href: '/bookmarks', labelKey: 'browse', icon: Search },
+    { href: '/mindmap', labelKey: 'mindmap', icon: GitBranch },
+    { href: '/import', labelKey: 'import', icon: Upload },
+    { href: '/settings', labelKey: 'settings', icon: Settings },
+  ]
+}
 
 const BUILDER_X = 'https://x.com/viperr'
 
@@ -84,16 +88,17 @@ interface PipelineStatus {
   total: number
 }
 
-const PIPELINE_STAGE_LABELS: Record<string, string> = {
-  vision: 'Analyzing images',
-  entities: 'Extracting entities',
-  enrichment: 'Generating tags',
-  categorize: 'Categorizing',
-  parallel: 'Processing in parallel',
+const PIPELINE_STAGE_LABELS: Record<string, keyof ReturnType<typeof useI18n>['t']> = {
+  vision: 'analyzingImages',
+  entities: 'extractingEntities',
+  enrichment: 'generatingTags',
+  categorize: 'categorizing',
+  parallel: 'processingInParallel',
 }
 
 export default function Nav() {
   const pathname = usePathname()
+  const { t } = useI18n()
   const [categories, setCategories] = useState<CategoryItem[]>([])
   const [totalBookmarks, setTotalBookmarks] = useState<number | null>(null)
   const [showAllCats, setShowAllCats] = useState(true)
@@ -102,6 +107,8 @@ export default function Nav() {
     return localStorage.getItem('nav-collections-open') !== 'false'
   })
   const [pipeline, setPipeline] = useState<PipelineStatus | null>(null)
+
+  const navItems = getNavItems(t)
 
   function toggleCollections() {
     setCollectionsOpen((v) => {
@@ -157,12 +164,13 @@ export default function Nav() {
     <aside className="flex flex-col bg-zinc-900 border-r border-zinc-800/50 shrink-0 sticky top-0 h-screen overflow-y-auto" style={{ width: '228px' }}>
 
       {/* Brand */}
-      <div className="flex items-center justify-center gap-3 px-4 py-3.5 border-b border-zinc-800/50">
+      <div className="flex items-center justify-center gap-2 px-4 py-3.5 border-b border-zinc-800/50">
         <img src="/logo.svg" alt="Siftly" className="w-9 h-9 shrink-0" />
         <span className="text-zinc-100 font-bold text-[17px] tracking-tight">
           Sift<span style={{ color: '#F5A623' }}>ly</span>
         </span>
-        <div className="shrink-0 flex items-center">
+        <div className="shrink-0 flex items-center gap-1">
+          <LanguageToggle />
           <ThemeToggle />
         </div>
       </div>
@@ -179,7 +187,7 @@ export default function Nav() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
           </span>
           <span className="text-[11px] font-medium text-indigo-300 truncate">
-            {pipeline.stage ? (PIPELINE_STAGE_LABELS[pipeline.stage] ?? pipeline.stage) : 'AI pipeline'}
+            {pipeline.stage ? (t[PIPELINE_STAGE_LABELS[pipeline.stage]] || pipeline.stage) : t.aiPipeline}
             {pipeline.stage === 'categorize' && pipeline.total > 0
               ? ` ${pipeline.done}/${pipeline.total}`
               : '…'}
@@ -203,7 +211,7 @@ export default function Nav() {
 
       {/* Main nav */}
       <nav className="flex flex-col gap-px px-2 py-2">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {navItems.map(({ href, labelKey, icon: Icon }) => {
           const active = isActive(pathname, href)
           return (
             <Link
@@ -216,7 +224,7 @@ export default function Nav() {
               }`}
             >
               <Icon size={14} className="shrink-0" />
-              {label}
+              {t[labelKey]}
             </Link>
           )
         })}
@@ -233,7 +241,7 @@ export default function Nav() {
             className="flex items-center justify-between px-2 mb-2 w-full group"
           >
             <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold">
-              Collections
+              {t.collections}
             </p>
             <div className="flex items-center gap-1.5">
               <Link
@@ -289,7 +297,7 @@ export default function Nav() {
                     size={10}
                     className={`transition-transform ${showAllCats ? 'rotate-90' : ''}`}
                   />
-                  {showAllCats ? 'Show less' : `${categories.length - 8} more`}
+                  {showAllCats ? t.showLess : `${categories.length - 8} ${t.more}`}
                 </button>
               )}
             </>
