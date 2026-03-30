@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ThemeToggle from './theme-toggle'
-import LanguageToggle from './language-toggle'
 import { useI18n } from '@/lib/i18n-context'
 import {
   LayoutDashboard,
@@ -169,8 +168,7 @@ export default function Nav() {
         <span className="text-zinc-100 font-bold text-[17px] tracking-tight">
           Sift<span style={{ color: '#F5A623' }}>ly</span>
         </span>
-        <div className="shrink-0 flex items-center gap-1">
-          <LanguageToggle />
+        <div className="shrink-0 flex items-center">
           <ThemeToggle />
         </div>
       </div>

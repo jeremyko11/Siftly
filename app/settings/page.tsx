@@ -20,7 +20,12 @@ import {
   Terminal,
   Loader2,
   X,
+  Globe,
+  Sun,
+  Moon,
 } from 'lucide-react'
+import { useI18n } from '@/lib/i18n-context'
+import { type Language } from '@/lib/i18n'
 
 const ANTHROPIC_MODELS = [
   { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: 'Fast & Cheap' },
@@ -980,6 +985,7 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
 
 export default function SettingsPage() {
   const [toast, setToast] = useState<Toast | null>(null)
+  const { t, language, setLanguage } = useI18n()
 
   function showToast(t: Toast) {
     setToast(t)
@@ -991,9 +997,9 @@ export default function SettingsPage() {
 
       {/* Page Header */}
       <div className="mb-8">
-        <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium mb-1">Configuration</p>
-        <h1 className="text-2xl font-bold text-zinc-100">Settings</h1>
-        <p className="text-zinc-400 mt-1 text-sm">Configure your Siftly instance</p>
+        <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium mb-1">{t.configuration}</p>
+        <h1 className="text-2xl font-bold text-zinc-100">{t.settingsTitle}</h1>
+        <p className="text-zinc-400 mt-1 text-sm">{t.settingsDescription}</p>
       </div>
 
       {/* Toast */}
@@ -1004,6 +1010,58 @@ export default function SettingsPage() {
       )}
 
       <div className="space-y-4">
+        {/* Appearance Section - Language & Theme */}
+        <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-all">
+          <div className="flex items-start gap-3 mb-5">
+            <div className="p-2.5 rounded-xl bg-indigo-500/10">
+              <Globe size={16} className="text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-zinc-100">{t.appearance}</h2>
+              <p className="text-sm text-zinc-500 mt-0.5">{t.languageDescription}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Language Selector */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-zinc-300">{t.language}</p>
+              </div>
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-zinc-800 border border-zinc-700">
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    language === 'en'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  onClick={() => setLanguage('zh')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    language === 'zh'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  中文
+                </button>
+              </div>
+            </div>
+
+            {/* Theme Toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-zinc-300">{t.theme}</p>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+
         <ApiKeySection onToast={showToast} />
         <XOAuthSection onToast={showToast} />
         <DataSection />
@@ -1011,5 +1069,38 @@ export default function SettingsPage() {
         <AboutSection />
       </div>
     </div>
+  )
+}
+
+function ThemeToggle() {
+  const { t } = useI18n()
+  const [isDark, setIsDark] = useState(true)
+
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('light') === false
+    setIsDark(isDarkMode)
+  }, [])
+
+  function toggleTheme() {
+    const html = document.documentElement
+    if (html.classList.contains('light')) {
+      html.classList.remove('light')
+      localStorage.setItem('theme', 'dark')
+      setIsDark(true)
+    } else {
+      html.classList.add('light')
+      localStorage.setItem('theme', 'light')
+      setIsDark(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-zinc-600 transition-all"
+    >
+      {isDark ? <Sun size={14} className="text-zinc-400" /> : <Moon size={14} className="text-zinc-400" />}
+      <span className="text-xs text-zinc-400">{isDark ? t.darkMode : t.lightMode}</span>
+    </button>
   )
 }

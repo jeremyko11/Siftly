@@ -53,40 +53,109 @@ export interface Translations {
   processingInParallel: string
   aiPipeline: string
 
-  // Settings
+  // Settings Page
+  settingsTitle: string
+  settingsDescription: string
+  configuration: string
+
+  // Language & Theme
+  appearance: string
+  language: string
+  languageDescription: string
+  theme: string
+  themeDescription: string
+  lightMode: string
+  darkMode: string
+
+  // AI Provider
+  aiProvider: string
+  aiProviderDescription: string
+  chooseAiProvider: string
+  anthropicClaude: string
+  openaiGpt: string
   apiKey: string
   apiKeyPlaceholder: string
   save: string
   saved: string
-  testConnection: string
+  remove: string
+  removing: string
+  test: string
   testing: string
-  success: string
+  working: string
   failed: string
-  cliStatus: string
-  cliConnected: string
-  cliNotConnected: string
-  theme: string
-  language: string
+  saved2: string
+  enterNewKeyToReplace: string
+  getKey: string
+  loadingSettings: string
+  testConnection: string
+  usedForAiCategorization: string
+  cliDetected: string
+  cliNotNeeded: string
+  signedInAs: string
+  willUseSubscriptionAutomatically: string
+  apiKeyWillTakePriority: string
+  cliSessionExpired: string
+  runCluadeRefresh: string
+  noCliDetected: string
+  installClaudeCode: string
+  keysStoredPlaintext: string
+  doNotExposeDatabase: string
+  model: string
+  appliesToAllAiOps: string
+  opusSlowWarning: string
+  considerSonnetOrHaiku: string
 
-  // Import
-  selectFile: string
-  dragAndDrop: string
-  importing: string
-  importComplete: string
-  imported: string
-  bookmarksImported: string
+  // X OAuth
+  xOAuth: string
+  xOAuthDescription: string
+  connectXAccount: string
+  clientId: string
+  clientSecret: string
+  clientSecretOptional: string
+  credentialsSaved: string
+  credentialsRemoved: string
+  getCredentialsFrom: string
+  xDeveloperPortal: string
+  callbackUrl: string
+  saveOAuthCredentials: string
 
-  // Categories
-  categoryName: string
-  addCategory: string
-  deleteCategory: string
-  confirmDelete: string
+  // Data Management
+  dataManagement: string
+  dataManagementDescription: string
+  exportAllBookmarks: string
+  exportAsCsv: string
+  exportAsJson: string
+  spreadsheetCompatible: string
+  fullDataWithFields: string
+  permanentlyDeleteAll: string
+  clearAll: string
+  areYouSure: string
+  cancel: string
+  yesDeleteAll: string
+  deleting: string
+  allBookmarksDeleted: string
 
-  // Search
-  naturalLanguageSearch: string
-  searchHint: string
-  noResults: string
-  results: string
+  // Danger Zone
+  dangerZone: string
+  dangerZoneDescription: string
+  irreversibleActions: string
+  clearAllBookmarks: string
+  permanentlyDeleteBookmarks: string
+
+  // About
+  about: string
+  aboutDescription: string
+  siftlyDescription: string
+  siftlyAboutDetail: string
+  builtBy: string
+  supportDevelopment: string
+  ifSiftlySavesYouTime: string
+  addressCopied: string
+
+  // General
+  success: string
+  error: string
+  description: string
 }
 
 const en: Translations = {
@@ -129,33 +198,106 @@ const en: Translations = {
   categorizing: 'Categorizing',
   processingInParallel: 'Processing in parallel',
   aiPipeline: 'AI pipeline',
+
+  // Settings Page
+  settingsTitle: 'Settings',
+  settingsDescription: 'Configure your Siftly instance',
+  configuration: 'Configuration',
+  appearance: 'Appearance',
+  language: 'Language',
+  languageDescription: 'Choose your preferred interface language',
+  theme: 'Theme',
+  themeDescription: 'Toggle between light and dark mode',
+  lightMode: 'Light',
+  darkMode: 'Dark',
+  aiProvider: 'AI Provider',
+  aiProviderDescription: 'Choose your AI provider and configure keys. CLI auth means no key needed.',
+  chooseAiProvider: 'Choose AI provider',
+  anthropicClaude: 'Anthropic (Claude)',
+  openaiGpt: 'OpenAI (GPT)',
   apiKey: 'API Key',
-  apiKeyPlaceholder: 'Enter your Anthropic API key',
+  apiKeyPlaceholder: 'sk-ant-api03-...',
   save: 'Save',
   saved: 'Saved',
-  testConnection: 'Test Connection',
+  remove: 'Remove',
+  removing: 'Removing…',
+  test: 'Test',
   testing: 'Testing…',
-  success: 'Success',
+  working: 'Working',
   failed: 'Failed',
-  cliStatus: 'CLI Status',
-  cliConnected: 'Claude CLI connected',
-  cliNotConnected: 'Claude CLI not found',
-  theme: 'Theme',
-  language: 'Language',
-  selectFile: 'Select File',
-  dragAndDrop: 'or drag and drop',
-  importing: 'Importing…',
-  importComplete: 'Import Complete',
-  imported: 'Imported',
-  bookmarksImported: 'bookmarks imported',
-  categoryName: 'Category Name',
-  addCategory: 'Add Category',
-  deleteCategory: 'Delete Category',
-  confirmDelete: 'Are you sure you want to delete this category?',
-  naturalLanguageSearch: 'Natural Language Search',
-  searchHint: 'Try: "cryptocurrency memes" or "tech news"',
-  noResults: 'No results found',
-  results: 'results',
+  saved2: 'Saved:',
+  enterNewKeyToReplace: 'Enter new key to replace…',
+  getKey: 'Get key',
+  loadingSettings: 'Loading settings…',
+  testConnection: 'Test Connection',
+  usedForAiCategorization: 'Used for AI categorization, search, and image analysis.',
+  cliDetected: 'Claude CLI detected — no API key needed',
+  cliNotNeeded: 'Signed in as',
+  signedInAs: 'Signed in as',
+  willUseSubscriptionAutomatically: 'Siftly will use your subscription automatically. An API key below will take priority if set.',
+  apiKeyWillTakePriority: '',
+  cliSessionExpired: 'Claude CLI session expired',
+  runCluadeRefresh: 'Run claude in your terminal to refresh the session, then reload this page.',
+  noCliDetected: 'No Claude CLI detected',
+  installClaudeCode: 'Install Claude Code and sign in to skip the API key entirely, or paste your API key below.',
+  keysStoredPlaintext: 'Keys are stored in plaintext in your local SQLite database',
+  doNotExposeDatabase: 'Do not expose the database file.',
+  model: 'Model:',
+  appliesToAllAiOps: 'Applies to all AI operations — API key and Claude CLI',
+  opusSlowWarning: 'Opus is slow with 20 parallel workers — consider Sonnet or Haiku for faster bulk categorization.',
+  considerSonnetOrHaiku: '',
+
+  // X OAuth
+  xOAuth: 'X (Twitter) OAuth 2.0',
+  xOAuthDescription: 'Connect your X account to import bookmarks using the official API.',
+  connectXAccount: 'Connect your X account',
+  clientId: 'Client ID',
+  clientSecret: 'Client Secret',
+  clientSecretOptional: 'Client Secret (optional for public clients)',
+  credentialsSaved: 'X OAuth credentials saved',
+  credentialsRemoved: 'X OAuth credentials removed',
+  getCredentialsFrom: 'Get credentials from the',
+  xDeveloperPortal: 'X Developer Portal',
+  callbackUrl: 'Callback URL:',
+  saveOAuthCredentials: 'Save X OAuth Credentials',
+
+  // Data Management
+  dataManagement: 'Data Management',
+  dataManagementDescription: 'Export all your bookmarks and category data for backup or migration.',
+  exportAllBookmarks: 'Export all your bookmarks',
+  exportAsCsv: 'Export as CSV',
+  exportAsJson: 'Export as JSON',
+  spreadsheetCompatible: 'Spreadsheet-compatible format',
+  fullDataWithFields: 'Full data with all fields',
+  permanentlyDeleteAll: 'Permanently delete all imported bookmarks',
+  clearAll: 'Clear all',
+  areYouSure: 'Are you sure?',
+  cancel: 'Cancel',
+  yesDeleteAll: 'Yes, delete all',
+  deleting: 'Deleting…',
+  allBookmarksDeleted: 'All bookmarks deleted successfully',
+
+  // Danger Zone
+  dangerZone: 'Danger Zone',
+  dangerZoneDescription: 'Irreversible actions that affect all your data.',
+  irreversibleActions: 'Irreversible actions',
+  clearAllBookmarks: 'Clear all bookmarks',
+  permanentlyDeleteBookmarks: 'Permanently delete all imported bookmarks',
+
+  // About
+  about: 'About Siftly',
+  aboutDescription: 'Self-hosted Twitter bookmark manager',
+  siftlyDescription: 'is a self-hosted app for organizing your Twitter/X bookmarks.',
+  siftlyAboutDetail: 'Use the built-in bookmarklet or console script to import, then run the 4-stage AI pipeline to analyze images, extract entities, generate semantic tags, and auto-categorize.',
+  builtBy: 'Built & open-sourced by',
+  supportDevelopment: 'Support development',
+  ifSiftlySavesYouTime: 'If Siftly saves you time, consider leaving a tip',
+  addressCopied: 'Address copied!',
+
+  // General
+  success: 'Success',
+  error: 'Error',
+  description: 'Description',
 }
 
 const zh: Translations = {
@@ -198,33 +340,106 @@ const zh: Translations = {
   categorizing: '分类中',
   processingInParallel: '并行处理中',
   aiPipeline: 'AI 处理管线',
+
+  // Settings Page
+  settingsTitle: '设置',
+  settingsDescription: '配置你的 Siftly 实例',
+  configuration: '配置',
+  appearance: '外观',
+  language: '语言',
+  languageDescription: '选择你喜欢的界面语言',
+  theme: '主题',
+  themeDescription: '切换浅色和深色模式',
+  lightMode: '浅色',
+  darkMode: '深色',
+  aiProvider: 'AI 提供商',
+  aiProviderDescription: '选择你的 AI 提供商并配置密钥。CLI 认证意味着无需密钥。',
+  chooseAiProvider: '选择 AI 提供商',
+  anthropicClaude: 'Anthropic (Claude)',
+  openaiGpt: 'OpenAI (GPT)',
   apiKey: 'API 密钥',
-  apiKeyPlaceholder: '输入你的 Anthropic API 密钥',
+  apiKeyPlaceholder: 'sk-ant-api03-...',
   save: '保存',
   saved: '已保存',
-  testConnection: '测试连接',
+  remove: '移除',
+  removing: '移除中…',
+  test: '测试',
   testing: '测试中…',
-  success: '成功',
+  working: '正常',
   failed: '失败',
-  cliStatus: 'CLI 状态',
-  cliConnected: 'Claude CLI 已连接',
-  cliNotConnected: '未找到 Claude CLI',
-  theme: '主题',
-  language: '语言',
-  selectFile: '选择文件',
-  dragAndDrop: '或拖放文件到这里',
-  importing: '导入中…',
-  importComplete: '导入完成',
-  imported: '已导入',
-  bookmarksImported: '条书签已导入',
-  categoryName: '分类名称',
-  addCategory: '添加分类',
-  deleteCategory: '删除分类',
-  confirmDelete: '确定要删除这个分类吗？',
-  naturalLanguageSearch: '自然语言搜索',
-  searchHint: '试试：加密货币表情包 或 科技新闻',
-  noResults: '未找到结果',
-  results: '条结果',
+  saved2: '已保存：',
+  enterNewKeyToReplace: '输入新密钥替换…',
+  getKey: '获取密钥',
+  loadingSettings: '加载设置中…',
+  testConnection: '测试连接',
+  usedForAiCategorization: '用于 AI 分类、搜索和图像分析。',
+  cliDetected: '检测到 Claude CLI — 无需 API 密钥',
+  cliNotNeeded: '登录为',
+  signedInAs: '登录为',
+  willUseSubscriptionAutomatically: 'Siftly 将自动使用你的订阅。如果设置了 API 密钥，下方密钥将优先使用。',
+  apiKeyWillTakePriority: '',
+  cliSessionExpired: 'Claude CLI 会话已过期',
+  runCluadeRefresh: '在终端运行 claude 刷新会话，然后刷新此页面。',
+  noCliDetected: '未检测到 Claude CLI',
+  installClaudeCode: '安装 Claude Code 并登录可跳过 API 密钥，或在下方粘贴你的 API 密钥。',
+  keysStoredPlaintext: '密钥以明文形式存储在本地 SQLite 数据库中',
+  doNotExposeDatabase: '不要暴露数据库文件。',
+  model: '模型：',
+  appliesToAllAiOps: '适用于所有 AI 操作 — API 密钥和 Claude CLI',
+  opusSlowWarning: 'Opus 在 20 个并行工作线程下较慢 — 考虑使用 Sonnet 或 Haiku 以加快批量分类速度。',
+  considerSonnetOrHaiku: '',
+
+  // X OAuth
+  xOAuth: 'X (Twitter) OAuth 2.0',
+  xOAuthDescription: '连接你的 X 账户以使用官方 API 导入书签。',
+  connectXAccount: '连接你的 X 账户',
+  clientId: '客户端 ID',
+  clientSecret: '客户端密钥',
+  clientSecretOptional: '客户端密钥（公共客户端可选）',
+  credentialsSaved: 'X OAuth 凭据已保存',
+  credentialsRemoved: 'X OAuth 凭据已移除',
+  getCredentialsFrom: '从以下位置获取凭据',
+  xDeveloperPortal: 'X 开发者门户',
+  callbackUrl: '回调 URL：',
+  saveOAuthCredentials: '保存 X OAuth 凭据',
+
+  // Data Management
+  dataManagement: '数据管理',
+  dataManagementDescription: '导出所有书签和分类数据以进行备份或迁移。',
+  exportAllBookmarks: '导出所有书签',
+  exportAsCsv: '导出为 CSV',
+  exportAsJson: '导出为 JSON',
+  spreadsheetCompatible: '电子表格兼容格式',
+  fullDataWithFields: '包含所有字段的完整数据',
+  permanentlyDeleteAll: '永久删除所有已导入的书签',
+  clearAll: '清除全部',
+  areYouSure: '确定吗？',
+  cancel: '取消',
+  yesDeleteAll: '是，删除全部',
+  deleting: '删除中…',
+  allBookmarksDeleted: '所有书签已成功删除',
+
+  // Danger Zone
+  dangerZone: '危险区域',
+  dangerZoneDescription: '影响所有数据的不可逆操作。',
+  irreversibleActions: '不可逆操作',
+  clearAllBookmarks: '清除所有书签',
+  permanentlyDeleteBookmarks: '永久删除所有已导入的书签',
+
+  // About
+  about: '关于 Siftly',
+  aboutDescription: '自托管 Twitter 书签管理器',
+  siftlyDescription: '是一个自托管应用，用于整理你的 Twitter/X 书签。',
+  siftlyAboutDetail: '使用内置的书签工具或控制台脚本导入，然后运行 4 阶段 AI 处理管线来分析图像、提取实体、生成语义标签和自动分类。',
+  builtBy: '构建者和开源贡献者',
+  supportDevelopment: '支持开发',
+  ifSiftlySavesYouTime: '如果 Siftly 节省了你的时间，考虑留下小费',
+  addressCopied: '地址已复制！',
+
+  // General
+  success: '成功',
+  error: '错误',
+  description: '描述',
 }
 
 export const translations: Record<Language, Translations> = { en, zh }
