@@ -91,6 +91,14 @@ export default function VirtualizedMasonryGrid({
   const prevLenRef = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Always read the latest hasMore from this ref — avoids stale closure in scroll handler
+  const hasMoreRef = useRef(hasMore)
+  hasMoreRef.current = hasMore
+
+  // Stable ref for onLoadMore — avoids effect re-subscriptions on every render
+  const onLoadMoreRef = useRef(onLoadMore)
+  onLoadMoreRef.current = onLoadMore
+
   // Update column count and container width from actual element
   useEffect(() => {
     const el = containerRef.current
@@ -140,7 +148,7 @@ export default function VirtualizedMasonryGrid({
     return max
   }, [items, colTops, colCount])
 
-  // Scroll handler
+  // Scroll handler — reads hasMore from ref, not closure, so it's always fresh
   useEffect(() => {
     function onScroll() {
       if (rafRef.current) return
@@ -148,10 +156,18 @@ export default function VirtualizedMasonryGrid({
         rafRef.current = null
         setScrollY(window.scrollY)
 
+        // Always read latest hasMore / onLoadMore from refs — no stale closure
         const docH = document.documentElement.scrollHeight
-        if (docH - window.scrollY - window.innerHeight < 600 && hasMore && !fetchingRef.current) {
+        const remaining = docH - window.scrollY - window.innerHeight
+        if (remaining < 600 && hasMoreRef.current && !fetchingRef.current) {
           fetchingRef.current = true
-          onLoadMore()
+          onLoadMoreRef.current()
+        }
+
+        // Safety fallback: if we've scrolled to the bottom and still have more,
+        // but fetching never triggered (stale closure edge case), force a reset
+        if (remaining < 200 && hasMoreRef.current && fetchingRef.current) {
+          fetchingRef.current = false
         }
       })
     }
@@ -160,9 +176,9 @@ export default function VirtualizedMasonryGrid({
       window.removeEventListener('scroll', onScroll)
       if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
     }
-  }, [hasMore, onLoadMore])
+  }, [])
 
-  // Reset guard when new batch arrives
+  // Reset guard when new batch arrives (items appended)
   useEffect(() => {
     if (bookmarks.length !== prevLenRef.current) {
       prevLenRef.current = bookmarks.length
