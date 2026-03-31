@@ -740,7 +740,7 @@ export default function BookmarkCard({ bookmark }: BookmarkCardProps) {
 
   return (
     <div
-      className="group relative bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 hover:shadow-xl hover:shadow-black/30 transition-all duration-200 flex flex-col flex-1"
+      className="group relative bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 hover:shadow-xl hover:shadow-black/30 transition-all duration-200 flex flex-col flex-1 aspect-[9/16] min-h-[280px]"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') setShowPreview(true) }}
     >

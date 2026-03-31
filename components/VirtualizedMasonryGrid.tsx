@@ -1,82 +1,72 @@
 'use client'
 
-import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react'
+import React, { useMemo, useRef, useState, useEffect } from 'react'
 import BookmarkCard from '@/components/bookmark-card'
 import type { BookmarkWithMedia } from '@/lib/types'
 import { measureBatchTexts } from '@/lib/text-measure'
 
-const COLUMN_BREAKPOINTS = [
-  { minWidth: 1280, cols: 3 },
-  { minWidth: 768, cols: 2 },
+// 5-column breakpoints: 2560px+ = 5, 1920px+ = 4, 1440px+ = 3, 1024px+ = 2, else = 1
+const COL_BREAKPOINTS = [
+  { minWidth: 2560, cols: 6 },
+  { minWidth: 1920, cols: 5 },
+  { minWidth: 1440, cols: 4 },
+  { minWidth: 1024, cols: 3 },
   { minWidth: 0, cols: 1 },
 ]
 
-const CARD_GAP = 12 // gap-3 = 12px
-const ESTIMATED_TEXT_HEIGHT = 80 // default text height when no text
-const ESTIMATED_LINE_HEIGHT = 20
-const VIEWPORT_BUFFER = 800 // px above and below viewport to pre-render
-
-interface VirtualizedMasonryGridProps {
-  bookmarks: BookmarkWithMedia[]
-  total: number
-  loadingMore: boolean
-  hasMore: boolean
-  onLoadMore: () => void
+const CARD_GAP = 12
+const VIEWPORT_BUFFER = 600
+const CARD_ESTIMATE = {
+  padding: 32,
+  authorRow: 44,
+  footerRow: 36,
+  mediaFirst: 192,
+  mediaExtra: 36,
+  chipsRow: 32,
+  textLine: 20,
 }
 
-interface ItemLayout {
-  index: number
-  column: number
-  top: number
-  height: number
-  bookmark: BookmarkWithMedia
-}
-
-/** Estimate card height from bookmark data */
-function estimateCardHeight(b: BookmarkWithMedia, colWidth: number): number {
-  const padding = 32
-  const textWidth = Math.max(200, colWidth - padding)
-  const textLines = measureBatchTexts([{ text: b.text, colWidth: textWidth }])[0]
-  const authorHeight = 40
-  const footerHeight = 36
-  const mediaHeight = b.mediaItems.length > 0 ? 192 + Math.max(0, b.mediaItems.length - 1) * 36 : 0
-  const chipsHeight = (b.urls?.length ?? 0) > 0 || (b.hashtags?.length ?? 0) > 0 || b.categories.length > 0 ? 32 : 0
-  return authorHeight + footerHeight + mediaHeight + chipsHeight + textLines + padding + CARD_GAP
-}
-
-function getColumnCount(containerWidth: number): number {
-  for (const bp of COLUMN_BREAKPOINTS) {
-    if (containerWidth >= bp.minWidth) return bp.cols
+function getColCount(screenW: number): number {
+  for (const bp of COL_BREAKPOINTS) {
+    if (screenW >= bp.minWidth) return bp.cols
   }
   return 1
 }
 
-function computeLayouts(bookmarks: BookmarkWithMedia[], colWidth: number): { layouts: ItemLayout[]; totalHeight: number; columnHeights: number[] } {
-  const cols = getColumnCount(colWidth * COLUMN_BREAKPOINTS[COLUMN_BREAKPOINTS.length - 1].minWidth)
-  const columnHeights = Array(cols).fill(0)
-  const layouts: ItemLayout[] = []
-
-  for (let i = 0; i < bookmarks.length; i++) {
-    const b = bookmarks[i]
-    const height = estimateCardHeight(b, colWidth)
-    // Place in shortest column
-    const col = columnHeights.indexOf(Math.min(...columnHeights))
-    const top = columnHeights[col]
-    layouts.push({ index: i, column: col, top, height, bookmark: b })
-    columnHeights[col] += height + CARD_GAP
-  }
-
-  const totalHeight = Math.max(...columnHeights)
-  return { layouts, totalHeight, columnHeights }
+function estimateHeight(b: BookmarkWithMedia, colW: number): number {
+  const textW = Math.max(200, colW - CARD_ESTIMATE.padding)
+  const rawH = measureBatchTexts([{ text: b.text, colWidth: textW }])[0]
+  const textH = rawH > 0 ? rawH + 8 : 0
+  const mediaH = b.mediaItems.length > 0
+    ? CARD_ESTIMATE.mediaFirst + Math.max(0, b.mediaItems.length - 1) * CARD_ESTIMATE.mediaExtra
+    : 0
+  const hasChips = (b.urls?.length ?? 0) > 0 || (b.hashtags?.length ?? 0) > 0 || b.categories.length > 0
+  const chipsH = hasChips ? CARD_ESTIMATE.chipsRow : 0
+  return CARD_ESTIMATE.authorRow + CARD_ESTIMATE.footerRow + mediaH + chipsH + textH + CARD_ESTIMATE.padding + CARD_GAP
 }
 
-function SkeletonCard({ colWidth }: { colWidth: number }) {
-  return (
-    <div
-      className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden animate-pulse"
-      style={{ height: 220 }}
-    />
-  )
+interface Item {
+  bookmark: BookmarkWithMedia
+  index: number
+  height: number
+}
+
+/**
+ * Distribute items across N columns using the greedy "shortest column" algorithm,
+ * then compute each item's cumulative top position within its column.
+ * Returns columnTops[colIdx] = cumulative height of column so far.
+ */
+function computeColumnTops(items: Item[], colCount: number): number[] {
+  const colHeights = Array(colCount).fill(0)
+  const colTops: number[] = []
+
+  for (const item of items) {
+    const col = colHeights.indexOf(Math.min(...colHeights))
+    colTops.push(col)
+    colHeights[col] += item.height + CARD_GAP
+  }
+
+  return colTops
 }
 
 export default function VirtualizedMasonryGrid({
@@ -85,143 +75,158 @@ export default function VirtualizedMasonryGrid({
   loadingMore,
   hasMore,
   onLoadMore,
-}: VirtualizedMasonryGridProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [colWidth, setColWidth] = useState(400)
-  const [scrollTop, setScrollTop] = useState(0)
-  const [viewportHeight, setViewportHeight] = useState(900)
+}: {
+  bookmarks: BookmarkWithMedia[]
+  total: number
+  loadingMore: boolean
+  hasMore: boolean
+  onLoadMore: () => void
+}) {
+  const [colCount, setColCount] = useState(3)
+  const [scrollY, setScrollY] = useState(0)
+  const [viewportH, setViewportH] = useState(900)
+  const [containerW, setContainerW] = useState(1200)
   const rafRef = useRef<number | null>(null)
-  const isFetchingRef = useRef(false)
+  const fetchingRef = useRef(false)
+  const prevLenRef = useRef(0)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  // Observe container width
+  // Update column count and container width from actual element
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
+
     const ro = new ResizeObserver(([entry]) => {
-      setColWidth(entry.contentRect.width)
+      const w = entry.contentRect.width
+      setContainerW(w)
+      setColCount(getColCount(w))
     })
     ro.observe(el)
-    setColWidth(el.clientWidth)
+    // Init
+    setContainerW(el.clientWidth)
+    setColCount(getColCount(el.clientWidth))
     return () => ro.disconnect()
   }, [])
 
-  // Update viewport height on resize
+  // Track viewport
   useEffect(() => {
-    setViewportHeight(window.innerHeight)
+    setViewportH(window.innerHeight)
   }, [])
 
-  // Pre-compute masonry layouts from all bookmarks + their heights
-  const { layouts, totalHeight } = useMemo(
-    () => computeLayouts(bookmarks, colWidth),
+  // Measure all items upfront
+  const colWidth = useMemo(() => {
+    // Fill the container: account for gaps between columns
+    const totalGap = CARD_GAP * (colCount - 1)
+    const avail = containerW - totalGap
+    return Math.floor(avail / colCount)
+  }, [containerW, colCount])
+
+  const items = useMemo<Item[]>(
+    () => bookmarks.map((bookmark, i) => ({ bookmark, index: i, height: estimateHeight(bookmark, colWidth) })),
     [bookmarks, colWidth]
   )
 
-  const colCount = useMemo(() => getColumnCount(colWidth), [colWidth])
+  const colTops = useMemo(() => computeColumnTops(items, colCount), [items, colCount])
 
-  // Which items are visible (within viewport ± buffer)?
-  const visibleIndices = useMemo(() => {
-    const visStart = scrollTop - VIEWPORT_BUFFER
-    const visEnd = scrollTop + viewportHeight + VIEWPORT_BUFFER
-    const indices = new Set<number>()
-    for (const layout of layouts) {
-      const itemBottom = layout.top + layout.height
-      if (itemBottom >= visStart && layout.top <= visEnd) {
-        indices.add(layout.index)
+  const totalHeight = useMemo(() => {
+    let max = 0
+    for (let c = 0; c < colCount; c++) {
+      let h = 0
+      for (let i = 0; i < items.length; i++) {
+        if (colTops[i] === c) h += items[i].height + CARD_GAP
       }
+      if (h > max) max = h
     }
-    return indices
-  }, [layouts, scrollTop, viewportHeight])
+    return max
+  }, [items, colTops, colCount])
 
-  // Throttled scroll handler
+  // Scroll handler
   useEffect(() => {
     function onScroll() {
       if (rafRef.current) return
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
-        const st = window.scrollY
-        setScrollTop(st)
+        setScrollY(window.scrollY)
 
-        // Trigger load more when near bottom
         const docH = document.documentElement.scrollHeight
-        if (docH - st - viewportHeight < 800 && hasMore && !isFetchingRef.current) {
-          isFetchingRef.current = true
+        if (docH - window.scrollY - window.innerHeight < 600 && hasMore && !fetchingRef.current) {
+          fetchingRef.current = true
           onLoadMore()
         }
       })
     }
-
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', onScroll)
       if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
     }
-  }, [hasMore, onLoadMore, viewportHeight])
+  }, [hasMore, onLoadMore])
 
-  // After load more completes, reset the guard
+  // Reset guard when new batch arrives
   useEffect(() => {
-    if (!loadingMore) isFetchingRef.current = false
-  }, [loadingMore])
-
-  // Reset scroll tracking when new bookmarks arrive
-  useEffect(() => {
-    setScrollTop(window.scrollY)
+    if (bookmarks.length !== prevLenRef.current) {
+      prevLenRef.current = bookmarks.length
+      fetchingRef.current = false
+    }
   }, [bookmarks.length])
 
-  const colWidthPx = Math.max(200, colWidth - 8) // small margin
+  // Visible items
+  const visibleItems = useMemo(() => {
+    const visTop = scrollY - VIEWPORT_BUFFER
+    const visBot = scrollY + viewportH + VIEWPORT_BUFFER
+    return items.map((item, i) => {
+      const col = colTops[i]
+      const top = col
+      const bot = col + item.height
+      return { ...item, visible: bot >= visTop && top <= visBot }
+    })
+  }, [items, colTops, scrollY, viewportH])
+
+  const colClass = {
+    1: 'columns-1',
+    2: 'columns-1 sm:columns-2',
+    3: 'columns-1 sm:columns-2 lg:columns-3',
+    4: 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4',
+    5: 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5',
+    6: 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6',
+  }[colCount] ?? 'columns-1 sm:columns-2 lg:columns-3'
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full"
-      style={{ height: totalHeight }}
-    >
-      {/* Staggered column layout: each column is a virtualized stack */}
-      <div className="absolute inset-0 flex gap-3">
-        {Array.from({ length: colCount }).map((_, colIdx) => {
-          const itemsInCol = layouts
-            .filter((l) => l.column === colIdx)
-            .sort((a, b) => a.index - b.index)
+    <div ref={containerRef}>
+      {/* CSS masonry — items flow top-to-bottom per column, break-inside prevents card splitting */}
+      <div className={`${colClass} gap-3`} style={{ minHeight: totalHeight }}>
 
+        {visibleItems.map(({ bookmark, height, visible }) => {
+          // Spacer div: reserves vertical space without mounting the card
+          if (!visible) {
+            return (
+              <div
+                key={bookmark.id}
+                aria-hidden="true"
+                className="break-inside-avoid mb-3"
+                style={{ height }}
+              />
+            )
+          }
           return (
-            <div
-              key={colIdx}
-              className="flex-1"
-              style={{ width: colWidthPx, maxWidth: colWidthPx }}
-            >
-              {itemsInCol.map((item) => {
-                if (!visibleIndices.has(item.index)) {
-                  // Spacer — reserves the height without mounting the component
-                  return (
-                    <div
-                      key={item.index}
-                      style={{ height: item.height - CARD_GAP, marginBottom: CARD_GAP }}
-                      aria-hidden="true"
-                    />
-                  )
-                }
-                return (
-                  <div
-                    key={item.bookmark.id}
-                    style={{ height: item.height - CARD_GAP, marginBottom: CARD_GAP }}
-                  >
-                    <BookmarkCard bookmark={item.bookmark} />
-                  </div>
-                )
-              })}
+            <div key={bookmark.id} className="break-inside-avoid mb-3">
+              <BookmarkCard bookmark={bookmark} />
             </div>
           )
         })}
+
+        {/* Loading skeletons appended at bottom */}
+        {loadingMore && Array.from({ length: colCount }).map((_, i) => (
+          <div key={`skel-${i}`} className="break-inside-avoid mb-3">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden animate-pulse aspect-[9/16]" />
+          </div>
+        ))}
       </div>
 
-      {/* Loading skeletons at bottom while loading more */}
-      {loadingMore && (
-        <div className="absolute bottom-0 left-0 right-0 flex gap-3 px-1">
-          {Array.from({ length: colCount }).map((_, i) => (
-            <div key={i} className="flex-1" style={{ maxWidth: colWidthPx }}>
-              <SkeletonCard colWidth={colWidthPx} />
-            </div>
-          ))}
-        </div>
+      {!loadingMore && !hasMore && bookmarks.length > 0 && (
+        <p className="text-center text-xs text-zinc-700 py-8">
+          All {total.toLocaleString()} bookmark{total !== 1 ? 's' : ''} loaded
+        </p>
       )}
     </div>
   )

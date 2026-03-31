@@ -241,11 +241,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 try {
                   const results = await categorizeBatch(batch, client, categoryDescriptions, allSlugs)
                   await writeCategoryResults(results)
+                  // Also mark as enriched so even empty-results bookmarks aren't reprocessed
+                  const idsWithResults = results
+                    .filter((r) => r.assignments.length > 0)
+                    .map((r) => r.tweetId)
+                  const enrichedIds = idsWithResults.length > 0
+                    ? await prisma.bookmark.findMany({
+                        where: { tweetId: { in: idsWithResults } },
+                        select: { id: true, enrichedAt: true },
+                      })
+                    : []
+                  const idsNeedingEnriched = enrichedIds
+                    .filter((b) => b.enrichedAt === null)
+                    .map((b) => b.id)
+                  if (idsNeedingEnriched.length > 0) {
+                    await prisma.bookmark.updateMany({
+                      where: { id: { in: idsNeedingEnriched } },
+                      data: { enrichedAt: new Date() },
+                    })
+                  }
                   counts.categorized += ids.length
                   setState({ stageCounts: { ...counts } })
                 } catch (catErr) {
                   console.error('[parallel] categorize batch error:', catErr)
-                  // Mark as categorized even on failure to unblock the queue
+                  // Mark ALL as enriched to unblock — they won't be reprocessed next pipeline run
+                  await prisma.bookmark.updateMany({
+                    where: { id: { in: ids } },
+                    data: { enrichedAt: new Date() },
+                  }).catch(() => {})
                   counts.categorized += ids.length
                   setState({ stageCounts: { ...counts } })
                 }
@@ -315,8 +338,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                       .filter((t): t is string => t !== null && t !== '' && t !== '{}')
 
                 if (imageTags.length === 0 && bm.text.length < 20) {
-                  // Trivial bookmark — skip enrichment
-                  await prisma.bookmark.update({ where: { id: bm.id }, data: { semanticTags: '[]' } }).catch(() => {})
+                  // Trivial bookmark — skip enrichment but mark as done so it's not reprocessed
+                  await prisma.bookmark.update({
+                    where: { id: bm.id },
+                    data: { semanticTags: '[]', enrichedAt: new Date() },
+                  }).catch(() => {})
                 } else {
                   let entities: BookmarkForEnrichment['entities'] = undefined
                   if (bm.entities) {
@@ -330,23 +356,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                       client,
                     )
                     const result = results[0]
-                    if (result?.tags.length) {
-                      await prisma.bookmark.update({
-                        where: { id: bm.id },
-                        data: {
-                          semanticTags: JSON.stringify(result.tags),
-                          enrichmentMeta: JSON.stringify({
-                            sentiment: result.sentiment,
-                            people: result.people,
-                            companies: result.companies,
-                          }),
-                        },
-                      }).catch(() => {})
+                    const tags = result?.tags ?? []
+                    // Always update semanticTags (even if empty) AND set enrichedAt
+                    // so this bookmark is never re-enriched on the next pipeline run
+                    await prisma.bookmark.update({
+                      where: { id: bm.id },
+                      data: {
+                        semanticTags: JSON.stringify(tags),
+                        enrichmentMeta: tags.length > 0
+                          ? JSON.stringify({
+                              sentiment: result!.sentiment,
+                              people: result!.people,
+                              companies: result!.companies,
+                            })
+                          : undefined,
+                        enrichedAt: new Date(),
+                      },
+                    }).catch(() => {})
+                    if (tags.length > 0) {
                       counts.enriched++
                       setState({ stageCounts: { ...counts } })
                     }
                   } catch (err) {
+                    // Mark as enriched even on failure — avoids infinite reprocessing
                     console.warn('[parallel] enrichment failed for', bm.id, err instanceof Error ? err.message : err)
+                    await prisma.bookmark.update({
+                      where: { id: bm.id },
+                      data: { enrichedAt: new Date() },
+                    }).catch(() => {})
                   }
                 }
               }

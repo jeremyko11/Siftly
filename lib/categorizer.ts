@@ -209,11 +209,41 @@ ${JSON.stringify(tweetData, null, 1)}`
 }
 
 function parseCategorizationResponse(text: string, validSlugs: Set<string>): CategorizationResult[] {
-  const jsonMatch = text.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) throw new Error('No JSON array found in AI response')
+  // Try multiple strategies to extract JSON array
+  let jsonText: string | null = null
 
-  const parsed: unknown = JSON.parse(jsonMatch[0])
+  // Strategy 1: standard array match
+  const standardMatch = text.match(/\[[\s\S]*\]/)
+  if (standardMatch) jsonText = standardMatch[0]
+
+  // Strategy 2: try to find JSON-like objects wrapped in code fences
+  if (!jsonText) {
+    const codeBlockMatch = text.match(/```(?:json)?\s*(\[[\s\S]*?)\s*```/)
+    if (codeBlockMatch) jsonText = codeBlockMatch[1]
+  }
+
+  // Strategy 3: brute-force — find first '[' and last ']'
+  if (!jsonText) {
+    const first = text.indexOf('[')
+    const last = text.lastIndexOf(']')
+    if (first !== -1 && last > first) {
+      jsonText = text.slice(first, last + 1)
+    }
+  }
+
+  if (!jsonText) throw new Error('No JSON array found in AI response')
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(jsonText)
+  } catch {
+    throw new Error('Failed to parse AI response as JSON')
+  }
+
   if (!Array.isArray(parsed)) throw new Error('Claude response is not an array')
+
+  const GENERAL_SLUG = 'general'
+  const hasGeneral = validSlugs.has(GENERAL_SLUG)
 
   return (parsed as Record<string, unknown>[]).map((item): CategorizationResult => {
     const tweetId = String(item.tweetId ?? '')
@@ -221,10 +251,16 @@ function parseCategorizationResponse(text: string, validSlugs: Set<string>): Cat
 
     const assignments: CategoryAssignment[] = (rawAssignments as Record<string, unknown>[])
       .map((a) => ({
-        category: String(a.category ?? ''),
-        confidence: typeof a.confidence === 'number' ? Math.min(1, Math.max(0.5, a.confidence)) : 0.8,
+        category: String(a.category ?? '').trim().toLowerCase().replace(/\s+/g, '-'),
+        confidence: typeof a.confidence === 'number' ? Math.min(1, Math.max(0.1, a.confidence)) : 0.7,
       }))
       .filter((a) => validSlugs.has(a.category))
+
+    // If ALL assignments were filtered out (invalid slugs), fall back to 'general'
+    // This prevents silent failures where bookmarks are "processed" but get no categories
+    if (assignments.length === 0 && hasGeneral) {
+      assignments.push({ category: GENERAL_SLUG, confidence: 0.5 })
+    }
 
     return { tweetId, assignments }
   })

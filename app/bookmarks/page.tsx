@@ -101,7 +101,7 @@ function SelectMenu({
 function SkeletonCard() {
   return (
     <div className="masonry-item">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden animate-pulse">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden animate-pulse aspect-[9/16]">
         <div className="h-40 bg-zinc-800" />
         <div className="p-4">
           <div className="flex items-center gap-2.5 mb-3">
@@ -338,7 +338,7 @@ function BookmarksPageInner() {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 px-6 md:px-8 py-6 max-w-7xl mx-auto w-full">
+      <div className="flex-1 px-6 md:px-8 py-6 w-full">
 
         {/* Results count */}
         {!loading && (
