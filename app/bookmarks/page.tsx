@@ -13,7 +13,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import * as Select from '@radix-ui/react-select'
-import VirtualizedMasonryGrid from '@/components/VirtualizedMasonryGrid'
+import MasonryGrid from '@/components/MasonryGrid'
 import type { BookmarkWithMedia, BookmarksResponse } from '@/lib/types'
 
 const PAGE_SIZE = 24
@@ -390,9 +390,9 @@ function BookmarksPageInner() {
           </div>
         )}
 
-        {/* Virtualized masonry grid — Pretext-powered height estimation + windowed rendering */}
+        {/* Pure CSS masonry grid — renders all items, IntersectionObserver handles infinite scroll */}
         {!loading && bookmarks.length > 0 && (
-          <VirtualizedMasonryGrid
+          <MasonryGrid
             bookmarks={bookmarks}
             total={total}
             loadingMore={loadingMore}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Download, ArrowLeft } from 'lucide-react'
-import VirtualizedMasonryGrid from '@/components/VirtualizedMasonryGrid'
+import MasonryGrid from '@/components/MasonryGrid'
 import type { BookmarkWithMedia, Category } from '@/lib/types'
 
 const PAGE_SIZE = 24
@@ -56,13 +56,13 @@ export default function CategoryPage() {
     if (fetchingRef.current) return
     fetchingRef.current = true
     const nextPage = page + 1
-    setPage(nextPage)
 
     fetch(`/api/bookmarks?category=${slug}&page=${nextPage}&limit=${PAGE_SIZE}`)
       .then(async (r) => { if (!r.ok) throw new Error('Failed to fetch'); return await r.json() as { bookmarks: BookmarkWithMedia[]; total: number } })
       .then((bmData) => {
         setBookmarks((prev) => [...prev, ...bmData.bookmarks])
         setTotal(bmData.total)
+        setPage(nextPage)
       })
       .catch(() => { /* keep existing items on error */ })
       .finally(() => { fetchingRef.current = false })
@@ -138,7 +138,7 @@ export default function CategoryPage() {
             <p className="text-xl font-semibold text-zinc-400">No bookmarks in this category</p>
           </div>
         ) : (
-          <VirtualizedMasonryGrid
+          <MasonryGrid
             bookmarks={bookmarks}
             total={total}
             loadingMore={false}
