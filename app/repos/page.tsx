@@ -42,9 +42,9 @@ export default function ReposPage() {
 
   async function checkToken() {
     try {
-      const res = await fetch('/api/settings?key=githubPersonalAccessToken')
+      const res = await fetch('/api/settings')
       const data = await res.json()
-      setHasToken(!!data.value)
+      setHasToken(!!data.hasGithubToken)
     } catch {
       setHasToken(false)
     }
