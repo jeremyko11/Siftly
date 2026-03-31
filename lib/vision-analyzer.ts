@@ -115,19 +115,22 @@ async function analyzeImageWithRetry(
   if (!img) return ''
 
   try {
-    const response = await client.createMessage({
-      model,
-      max_tokens: 700,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.data } },
-            { type: 'text', text: ANALYSIS_PROMPT },
-          ],
-        },
-      ],
-    })
+    const response = await Promise.race([
+      client.createMessage({
+        model,
+        max_tokens: 700,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.data } },
+              { type: 'text', text: ANALYSIS_PROMPT },
+            ],
+          },
+        ],
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SDK timeout (60s)')), 60_000)),
+    ])
     const raw = response.text?.trim() ?? ''
     if (!raw) return ''
 
@@ -428,11 +431,10 @@ export async function enrichBatchSemanticTags(
 
   for (let attempt = 0; attempt <= ENRICH_RETRY_DELAYS.length; attempt++) {
     try {
-      const response = await client.createMessage({
-        model,
-        max_tokens: 4096,
-        messages: [{ role: 'user', content: prompt }],
-      })
+      const response = await Promise.race([
+        client.createMessage({ model, max_tokens: 4096, messages: [{ role: 'user', content: prompt }] }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SDK timeout (90s)')), 90_000)),
+      ])
       const results = parseResponse(response.text)
       if (results.length > 0) return results
       console.warn(`[enrich] no JSON array in response (attempt ${attempt + 1})`)

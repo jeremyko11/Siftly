@@ -119,6 +119,23 @@ export interface Translations {
   callbackUrl: string
   saveOAuthCredentials: string
 
+  // Bird CLI
+  birdCli: string
+  birdCliDescription: string
+  birdAuthToken: string
+  birdCt0: string
+  birdAuthTokenHint: string
+  birdCt0Hint: string
+  birdCredentialsSaved: string
+  birdFetchNow: string
+  birdFetching: string
+  birdImportComplete: string
+  birdNotConfigured: string
+  birdAddCredentialsFirst: string
+  savedBirdCredentials: string
+  removeBirdCredentials: string
+  removeBirdCredentialsConfirm: string
+
   // Data Management
   dataManagement: string
   dataManagementDescription: string
@@ -156,6 +173,157 @@ export interface Translations {
   success: string
   error: string
   description: string
+  copy: string
+  copied: string
+  disconnect: string
+  retry: string
+  cleared: string
+  saving: string
+  hideKey: string
+  showKey: string
+  connectionError: string
+  failedToSaveModel: string
+  failedToSaveProvider: string
+  switchedTo: string
+  failedToRemoveKey: string
+  failedToSaveApiKey: string
+  failedToSaveOAuth: string
+  failedToRemoveOAuth: string
+
+  // Import Page
+  importBookmarks: string
+  importDescription: string
+  step1: string
+  step2: string
+  step3: string
+  importingBookmarks: string
+  thisMayTakeAMoment: string
+  importComplete: string
+  imported: string
+  skipped: string
+  asDuplicates: string
+  startingAiCategorization: string
+  liveImport: string
+  liveImportRecommended: string
+  bookmarklet: string
+  console: string
+  dropJsonHere: string
+  orClickToBrowse: string
+  uploadDownloadedFile: string
+  dragToBookmarkBar: string
+  manualWorksInAllBrowsers: string
+  addBookmarkBar: string
+  addBookmark: string
+  copyUrlBelow: string
+  goToBookmarksPage: string
+  clickExportInBookmarkBar: string
+  exportButtonAppears: string
+  clickAutoScrollCapture: string
+  autoScrollAppears: string
+  clickPurpleExport: string
+  downloadedAutomatically: string
+  goToDevTools: string
+  pressF12: string
+  pasteAndRunScript: string
+  pressEnterScroll: string
+  purpleButtonAppears: string
+  xOAuthRecommended: string
+  connectYourXAccount: string
+  officialOAuthMethod: string
+  requiresOAuthClientId: string
+  requiresBasicTier: string
+  xOAuthNotConfigured: string
+  addOAuthInSettings: string
+  connectedToX: string
+  tokenExpired: string
+  autoRefreshTry: string
+  fetchingBookmarks: string
+  fetchBookmarksFromX: string
+  stopPipeline: string
+  stopping: string
+  categorizationComplete: string
+  imagesAnalyzedLabel: string
+  entitiesExtracted: string
+  bookmarksEnrichedLabel: string
+  categorizedLabel: string
+  remaining: string
+  viewYourBookmarks: string
+  reprocessAll: string
+  alreadyUpToDate: string
+  allBookmarksAlreadyImported: string
+  retryCategorization: string
+  lostConnectionServer: string
+  pipelineMayStillBeRunning: string
+  bookmarksNotYetProcessed: string
+  process: string
+  reAnalyzeAll: string
+  fromScratch: string
+  dragToBookmarkBarTip: string
+  openDevTools: string
+  liveImportDescription: string
+  redirectingToX: string
+
+  // Categorize Page (same as pipeline keys above)
+
+  // Bookmarks Page
+  browseBookmarks: string
+  allBookmarks: string
+  allTypes: string
+  allCategories: string
+  filterByType: string
+  filterByCategory: string
+  sortBy: string
+  newest: string
+  oldest: string
+  noBookmarksFound: string
+  clearFilters: string
+
+  // Category Name Translations (for sidebar display)
+  catAiResources: string
+  catFinanceCrypto: string
+  catDesign: string
+  catDevTools: string
+  catFinanceInvesting: string
+  catFunnyMemes: string
+  catGeneral: string
+  catHealthWellness: string
+  catNews: string
+  catProductivity: string
+  catScienceResearch: string
+  catSecurityPrivacy: string
+  catStartupsBusiness: string
+
+  // Bookmark Card
+  less: string
+  noTextContent: string
+  editCategories: string
+  saveFailed: string
+  loadingCategories: string
+  noCategoriesFound: string
+  downloadMedia: string
+  openOnX: string
+  watchOnX: string
+  viewOnX: string
+  viewArticleOnX: string
+
+  // Mindmap Page
+  mindmapTitle: string
+  viewAsGraph: string
+
+  // AI Search Page
+  aiSearchTitle: string
+  aiSearchDescription: string
+  askQuestion: string
+  searching: string
+  noResultsFound: string
+
+  // Categories
+  categories: string
+  manageCategories: string
+  categoryName: string
+  addCategory: string
+  deleteCategory: string
+  confirmDelete: string
 }
 
 const en: Translations = {
@@ -261,6 +429,23 @@ const en: Translations = {
   callbackUrl: 'Callback URL:',
   saveOAuthCredentials: 'Save X OAuth Credentials',
 
+  // Bird CLI
+  birdCli: 'X Bookmark CLI Import',
+  birdCliDescription: 'Use the bird CLI to fetch bookmarks directly. No X Premium needed.',
+  birdAuthToken: 'auth_token',
+  birdCt0: 'ct0',
+  birdAuthTokenHint: 'Found in browser cookies (x.com → DevTools → Application → Cookies)',
+  birdCt0Hint: 'Found in browser cookies (x.com → DevTools → Application → Cookies)',
+  birdCredentialsSaved: 'Bird credentials saved',
+  birdFetchNow: 'Fetch Bookmarks Now',
+  birdFetching: 'Fetching bookmarks…',
+  birdImportComplete: 'Bird import complete',
+  birdNotConfigured: 'Bird CLI not configured',
+  birdAddCredentialsFirst: 'Add auth_token and ct0 first',
+  savedBirdCredentials: 'Bird credentials configured',
+  removeBirdCredentials: 'Remove Bird credentials',
+  removeBirdCredentialsConfirm: 'Are you sure you want to remove Bird credentials?',
+
   // Data Management
   dataManagement: 'Data Management',
   dataManagementDescription: 'Export all your bookmarks and category data for backup or migration.',
@@ -298,6 +483,155 @@ const en: Translations = {
   success: 'Success',
   error: 'Error',
   description: 'Description',
+  copy: 'Copy',
+  copied: 'Copied!',
+  disconnect: 'Disconnect',
+  retry: 'Retry',
+  cleared: 'Cleared',
+  saving: 'Saving…',
+  hideKey: 'Hide key',
+  showKey: 'Show key',
+  connectionError: 'Connection error',
+  failedToSaveModel: 'Failed to save model preference',
+  failedToSaveProvider: 'Failed to save provider preference',
+  switchedTo: 'Switched to',
+  failedToRemoveKey: 'Failed to remove key',
+  failedToSaveApiKey: 'Failed to save API key',
+  failedToSaveOAuth: 'Failed to save',
+  failedToRemoveOAuth: 'Failed to remove',
+
+  // Import Page
+  importBookmarks: 'Import Bookmarks',
+  importDescription: 'Export your X/Twitter bookmarks as JSON, then upload below.',
+  step1: 'Upload',
+  step2: 'Importing',
+  step3: 'Categorize',
+  importingBookmarks: 'Importing bookmarks…',
+  thisMayTakeAMoment: 'This may take a moment',
+  importComplete: 'Import Complete',
+  imported: 'imported',
+  skipped: 'skipped',
+  asDuplicates: 'as duplicates',
+  startingAiCategorization: 'Starting AI categorization…',
+  liveImport: 'Live Import',
+  liveImportRecommended: 'Recommended',
+  bookmarklet: 'Bookmarklet',
+  console: 'Console',
+  dropJsonHere: 'Drop your JSON file here',
+  orClickToBrowse: 'or click to browse',
+  uploadDownloadedFile: 'Upload the downloaded file',
+  dragToBookmarkBar: 'Drag to bookmark bar',
+  manualWorksInAllBrowsers: 'Manual (works in all browsers)',
+  addBookmarkBar: 'Add bookmark / New bookmark',
+  addBookmark: 'Add bookmark',
+  copyUrlBelow: 'Copy the URL below',
+  goToBookmarksPage: 'Go to x.com/i/bookmarks while logged in',
+  clickExportInBookmarkBar: 'Click "Export X Bookmarks" in your bookmark bar',
+  exportButtonAppears: 'A purple Export button will appear on the page',
+  clickAutoScrollCapture: 'Click "Auto-scroll" to capture all bookmarks automatically',
+  autoScrollAppears: 'A second button appears below the export button',
+  clickPurpleExport: 'Click the purple "Export N bookmarks" button',
+  downloadedAutomatically: 'A bookmarks.json file will download automatically',
+  goToDevTools: 'Open browser DevTools and go to the Console tab',
+  pressF12: 'Press F12 on Windows/Linux or Cmd+Option+J on Mac',
+  pasteAndRunScript: 'Paste and run the script below',
+  pressEnterScroll: 'Press Enter, then scroll through all your bookmarks',
+  purpleButtonAppears: 'A purple button will appear. Scroll slowly to capture all bookmarks.',
+  xOAuthRecommended: 'X OAuth 2.0 (Recommended)',
+  connectYourXAccount: 'Connect your X account',
+  officialOAuthMethod: 'official OAuth 2.0 flow. No cookies or session tokens needed.',
+  requiresOAuthClientId: 'Requires X OAuth Client ID in Settings. Scopes: bookmark.read, tweet.read, users.read',
+  requiresBasicTier: 'Note: X API requires a paid Basic tier ($200/mo) or higher for bookmark.read scope.',
+  xOAuthNotConfigured: 'X OAuth not configured',
+  addOAuthInSettings: 'Add your X OAuth Client ID in Settings',
+  connectedToX: 'Connected to X',
+  tokenExpired: 'Token expired. Siftly will try to auto-refresh, or you can reconnect.',
+  autoRefreshTry: 'Token expired. Siftly will try to auto-refresh.',
+  fetchingBookmarks: 'Fetching bookmarks…',
+  fetchBookmarksFromX: 'Fetch Bookmarks from X',
+  stopPipeline: 'Stop pipeline',
+  stopping: 'Stopping…',
+  categorizationComplete: 'Categorization Complete!',
+  imagesAnalyzedLabel: 'images analyzed',
+  entitiesExtracted: 'entities extracted',
+  bookmarksEnrichedLabel: 'bookmarks enriched',
+  categorizedLabel: 'categorized',
+  remaining: 'remaining',
+  viewYourBookmarks: 'View your bookmarks',
+  reprocessAll: 'Reprocess all',
+  alreadyUpToDate: 'Already up to date',
+  allBookmarksAlreadyImported: 'All bookmarks in this file were already imported',
+  retryCategorization: 'Retry Categorization',
+  lostConnectionServer: 'Lost connection to the server. The pipeline may still be running.',
+  pipelineMayStillBeRunning: 'Refresh to check.',
+  bookmarksNotYetProcessed: 'bookmarks not yet processed',
+  process: 'Process',
+  reAnalyzeAll: 'Re-analyze all',
+  fromScratch: 'from scratch',
+  dragToBookmarkBarTip: 'Drag this to your bookmarks bar — do not click',
+  openDevTools: 'DevTools Console',
+  liveImportDescription: 'Connect your X account to import bookmarks using the official API.',
+  redirectingToX: 'Redirecting to X…',
+
+  // Bookmarks Page
+  browseBookmarks: 'Browse Bookmarks',
+  allBookmarks: 'All Bookmarks',
+  allTypes: 'All Types',
+  allCategories: 'All Categories',
+  filterByType: 'Filter by type',
+  filterByCategory: 'Filter by category',
+  sortBy: 'Sort by',
+  newest: 'Newest',
+  oldest: 'Oldest',
+  noBookmarksFound: 'No bookmarks found',
+  clearFilters: 'Clear filters',
+
+  // Category Translations
+  catAiResources: 'AI & Machine Learning',
+  catFinanceCrypto: 'Crypto & Web3',
+  catDesign: 'Design & Product',
+  catDevTools: 'Dev Tools & Engineering',
+  catFinanceInvesting: 'Finance & Investing',
+  catFunnyMemes: 'Funny & Memes',
+  catGeneral: 'General',
+  catHealthWellness: 'Health & Wellness',
+  catNews: 'News & Politics',
+  catProductivity: 'Productivity',
+  catScienceResearch: 'Science & Research',
+  catSecurityPrivacy: 'Security & Privacy',
+  catStartupsBusiness: 'Startups & Business',
+
+  // Bookmark Card
+  less: 'less',
+  noTextContent: 'No text content',
+  editCategories: 'Edit categories',
+  saveFailed: 'Save failed',
+  loadingCategories: 'Loading…',
+  noCategoriesFound: 'No categories found',
+  downloadMedia: 'Download media',
+  openOnX: 'Open on X',
+  watchOnX: 'Watch on X ↗',
+  viewOnX: 'View on X',
+  viewArticleOnX: 'View Article on X',
+
+  // Mindmap Page
+  mindmapTitle: 'Knowledge Graph',
+  viewAsGraph: 'View as graph',
+
+  // AI Search Page
+  aiSearchTitle: 'AI Search',
+  aiSearchDescription: 'Search your bookmarks using natural language',
+  askQuestion: 'Ask a question…',
+  searching: 'Searching…',
+  noResultsFound: 'No results found',
+
+  // Categories
+  categories: 'Categories',
+  manageCategories: 'Manage categories',
+  categoryName: 'Category name',
+  addCategory: 'Add category',
+  deleteCategory: 'Delete category',
+  confirmDelete: 'Are you sure you want to delete this category?',
 }
 
 const zh: Translations = {
@@ -403,6 +737,23 @@ const zh: Translations = {
   callbackUrl: '回调 URL：',
   saveOAuthCredentials: '保存 X OAuth 凭据',
 
+  // Bird CLI
+  birdCli: 'X 书签 CLI 导入',
+  birdCliDescription: '使用 bird CLI 直接拉取书签。无需 X Premium。',
+  birdAuthToken: 'auth_token',
+  birdCt0: 'ct0',
+  birdAuthTokenHint: '从浏览器 Cookie 获取（x.com → 开发者工具 → Application → Cookies）',
+  birdCt0Hint: '从浏览器 Cookie 获取（x.com → 开发者工具 → Application → Cookies）',
+  birdCredentialsSaved: 'Bird 凭据已保存',
+  birdFetchNow: '立即拉取书签',
+  birdFetching: '正在拉取书签…',
+  birdImportComplete: 'Bird 导入完成',
+  birdNotConfigured: 'Bird CLI 未配置',
+  birdAddCredentialsFirst: '请先填写 auth_token 和 ct0',
+  savedBirdCredentials: 'Bird 凭据已配置',
+  removeBirdCredentials: '移除 Bird 凭据',
+  removeBirdCredentialsConfirm: '确定要移除 Bird 凭据吗？',
+
   // Data Management
   dataManagement: '数据管理',
   dataManagementDescription: '导出所有书签和分类数据以进行备份或迁移。',
@@ -440,6 +791,155 @@ const zh: Translations = {
   success: '成功',
   error: '错误',
   description: '描述',
+  copy: '复制',
+  copied: '已复制！',
+  disconnect: '断开连接',
+  retry: '重试',
+  cleared: '已清除',
+  saving: '保存中…',
+  hideKey: '隐藏密钥',
+  showKey: '显示密钥',
+  connectionError: '连接错误',
+  failedToSaveModel: '保存模型偏好失败',
+  failedToSaveProvider: '保存提供商偏好失败',
+  switchedTo: '已切换到',
+  failedToRemoveKey: '移除密钥失败',
+  failedToSaveApiKey: '保存 API 密钥失败',
+  failedToSaveOAuth: '保存失败',
+  failedToRemoveOAuth: '移除失败',
+
+  // Import Page
+  importBookmarks: '导入书签',
+  importDescription: '将 X/Twitter 书签导出为 JSON，然后上传。',
+  step1: '上传',
+  step2: '导入中',
+  step3: '分类',
+  importingBookmarks: '正在导入书签…',
+  thisMayTakeAMoment: '这可能需要一些时间',
+  importComplete: '导入完成',
+  imported: '已导入',
+  skipped: '跳过',
+  asDuplicates: '重复书签',
+  startingAiCategorization: '正在启动 AI 分类…',
+  liveImport: '实时导入',
+  liveImportRecommended: '推荐',
+  bookmarklet: '书签小工具',
+  console: '控制台',
+  dropJsonHere: '将 JSON 文件拖到这里',
+  orClickToBrowse: '或点击浏览',
+  uploadDownloadedFile: '上传下载的文件',
+  dragToBookmarkBar: '拖到书签栏',
+  manualWorksInAllBrowsers: '手动方式（所有浏览器可用）',
+  addBookmarkBar: '添加书签 / 新建书签',
+  addBookmark: '添加书签',
+  copyUrlBelow: '复制下方链接',
+  goToBookmarksPage: '登录后访问 x.com/i/bookmarks',
+  clickExportInBookmarkBar: '点击书签栏中的"导出 X 书签"',
+  exportButtonAppears: '页面上会出现一个紫色的导出按钮',
+  clickAutoScrollCapture: '点击"自动滚动"自动抓取所有书签',
+  autoScrollAppears: '导出按钮下方会出现第二个按钮',
+  clickPurpleExport: '点击紫色的"导出 N 条书签"按钮',
+  downloadedAutomatically: '会自动下载一个 bookmarks.json 文件',
+  goToDevTools: '打开浏览器开发者工具，进入控制台标签',
+  pressF12: 'Windows/Linux 按 F12，Mac 按 Cmd+Option+J',
+  pasteAndRunScript: '粘贴并运行下方脚本',
+  pressEnterScroll: '按回车键，然后滚动浏览所有书签',
+  purpleButtonAppears: '会出现一个紫色按钮。慢慢滚动以抓取所有书签。',
+  xOAuthRecommended: 'X OAuth 2.0（推荐）',
+  connectYourXAccount: '连接你的 X 账户',
+  officialOAuthMethod: '官方 OAuth 2.0 流程。无需 cookies 或会话令牌。',
+  requiresOAuthClientId: '需要在设置中填写 X OAuth 客户端 ID。权限范围：bookmark.read, tweet.read, users.read',
+  requiresBasicTier: '注意：X API 需要付费的 Basic 套餐（$200/月）才能访问 bookmark.read 权限。',
+  xOAuthNotConfigured: 'X OAuth 未配置',
+  addOAuthInSettings: '在设置中添加你的 X OAuth 客户端 ID',
+  connectedToX: '已连接到 X',
+  tokenExpired: '令牌已过期。Siftly 会尝试自动刷新，或者你可以重新连接。',
+  autoRefreshTry: '令牌已过期。Siftly 会尝试自动刷新。',
+  fetchingBookmarks: '正在获取书签…',
+  fetchBookmarksFromX: '从 X 获取书签',
+  stopPipeline: '停止处理',
+  stopping: '停止中…',
+  categorizationComplete: '分类完成！',
+  imagesAnalyzedLabel: '张图片已分析',
+  entitiesExtracted: '个实体已提取',
+  bookmarksEnrichedLabel: '条书签已增强',
+  categorizedLabel: '条已分类',
+  remaining: '剩余',
+  viewYourBookmarks: '查看书签',
+  reprocessAll: '全部重新处理',
+  alreadyUpToDate: '已是最新',
+  allBookmarksAlreadyImported: '此文件中的所有书签都已被导入',
+  retryCategorization: '重试分类',
+  lostConnectionServer: '与服务器的连接丢失。处理管线可能仍在运行。',
+  pipelineMayStillBeRunning: '请刷新页面检查。',
+  bookmarksNotYetProcessed: '条书签尚未处理',
+  process: '处理',
+  reAnalyzeAll: '重新分析所有',
+  fromScratch: '从头开始',
+  dragToBookmarkBarTip: '拖到书签栏 — 不要点击',
+  openDevTools: '开发者工具控制台',
+  liveImportDescription: '连接你的 X 账户以使用官方 API 导入书签。',
+  redirectingToX: '正在跳转到 X…',
+
+  // Bookmarks Page
+  browseBookmarks: '浏览书签',
+  allBookmarks: '所有书签',
+  allTypes: '所有类型',
+  allCategories: '所有分类',
+  filterByType: '按类型筛选',
+  filterByCategory: '按分类筛选',
+  sortBy: '排序',
+  newest: '最新',
+  oldest: '最旧',
+  noBookmarksFound: '未找到书签',
+  clearFilters: '清除筛选',
+
+  // Category Translations
+  catAiResources: 'AI 与机器学习',
+  catFinanceCrypto: '加密货币与 Web3',
+  catDesign: '设计与产品',
+  catDevTools: '开发工具与工程',
+  catFinanceInvesting: '金融与投资',
+  catFunnyMemes: '趣味与梗',
+  catGeneral: '通用',
+  catHealthWellness: '健康与养生',
+  catNews: '新闻与政治',
+  catProductivity: '效率工具',
+  catScienceResearch: '科学研究',
+  catSecurityPrivacy: '安全与隐私',
+  catStartupsBusiness: '创业与商业',
+
+  // Bookmark Card
+  less: '收起',
+  noTextContent: '无文字内容',
+  editCategories: '编辑分类',
+  saveFailed: '保存失败',
+  loadingCategories: '加载中…',
+  noCategoriesFound: '未找到分类',
+  downloadMedia: '下载媒体',
+  openOnX: '在 X 上查看',
+  watchOnX: '在 X 上观看 ↗',
+  viewOnX: '在 X 上查看',
+  viewArticleOnX: '在 X 上阅读文章',
+
+  // Mindmap Page
+  mindmapTitle: '知识图谱',
+  viewAsGraph: '以图谱查看',
+
+  // AI Search Page
+  aiSearchTitle: 'AI 搜索',
+  aiSearchDescription: '使用自然语言搜索你的书签',
+  askQuestion: '问一个问题…',
+  searching: '搜索中…',
+  noResultsFound: '未找到结果',
+
+  // Categories
+  categories: '分类',
+  manageCategories: '管理分类',
+  categoryName: '分类名称',
+  addCategory: '添加分类',
+  deleteCategory: '删除分类',
+  confirmDelete: '确定要删除这个分类吗？',
 }
 
 export const translations: Record<Language, Translations> = { en, zh }

@@ -96,29 +96,57 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       prisma.bookmark.count({ where }),
     ])
 
-    const formatted = bookmarks.map((bookmark) => ({
-      id: bookmark.id,
-      tweetId: bookmark.tweetId,
-      text: bookmark.text,
-      authorHandle: bookmark.authorHandle,
-      authorName: bookmark.authorName,
-      source: bookmark.source,
-      tweetCreatedAt: bookmark.tweetCreatedAt?.toISOString() ?? null,
-      importedAt: bookmark.importedAt.toISOString(),
-      mediaItems: bookmark.mediaItems.map((m) => ({
-        id: m.id,
-        type: m.type,
-        url: m.url,
-        thumbnailUrl: m.thumbnailUrl,
-      })),
-      categories: bookmark.categories.map((bc) => ({
-        id: bc.category.id,
-        name: bc.category.name,
-        slug: bc.category.slug,
-        color: bc.category.color,
-        confidence: bc.confidence,
-      })),
-    }))
+    const formatted = bookmarks.map((bookmark) => {
+      // Extract expanded URLs and hashtags from rawJson
+      let urls: string[] = []
+      let hashtags: string[] = []
+      if (bookmark.rawJson) {
+        try {
+          const raw = JSON.parse(bookmark.rawJson)
+          urls = (raw.entities?.urls ?? []).map((u: { expanded_url?: string; url?: string }) => u.expanded_url ?? u.url ?? '').filter(Boolean)
+          hashtags = (raw.entities?.hashtags ?? []).map((h: { text?: string }) => h.text ?? '').filter(Boolean)
+        } catch {}
+      }
+      // Fallback: extract directly from tweet text if rawJson had no entities (old imports)
+      if (urls.length === 0) {
+        const urlMatches = bookmark.text.match(/https?:\/\/[^\s]+/g) ?? []
+        urls = urlMatches.filter((u) => !u.includes('t.co/'))
+        // If still empty (all were t.co), keep t.co URLs so the card shows something
+        if (urls.length === 0 && urlMatches.length > 0) {
+          urls = urlMatches
+        }
+      }
+      if (hashtags.length === 0) {
+        const tagMatches = bookmark.text.match(/#[\w\u4e00-\u9fff]+/g) ?? []
+        hashtags = tagMatches.map((t) => t.replace(/^#/, ''))
+      }
+      return {
+        id: bookmark.id,
+        tweetId: bookmark.tweetId,
+        text: bookmark.text,
+        authorHandle: bookmark.authorHandle,
+        authorName: bookmark.authorName,
+        source: bookmark.source,
+        tweetCreatedAt: bookmark.tweetCreatedAt?.toISOString() ?? null,
+        importedAt: bookmark.importedAt.toISOString(),
+        mediaItems: bookmark.mediaItems.map((m) => ({
+          id: m.id,
+          type: m.type,
+          url: m.url,
+          thumbnailUrl: m.thumbnailUrl,
+        })),
+        categories: bookmark.categories.map((bc) => ({
+          id: bc.category.id,
+          name: bc.category.name,
+          slug: bc.category.slug,
+          color: bc.category.color,
+          confidence: bc.confidence,
+        })),
+        rawJson: bookmark.rawJson ?? undefined,
+        urls,
+        hashtags,
+      }
+    })
 
     return NextResponse.json({
       bookmarks: formatted,

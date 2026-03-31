@@ -122,9 +122,23 @@ New accounts include $5 free credit — enough for thousands of bookmarks at Hai
 
 ## Importing Your Bookmarks
 
-Siftly has **built-in import tools** — no browser extensions required. Go to the **Import** page and choose either method:
+Siftly has **three import methods** — choose whichever suits you best.
 
-### Method A — Bookmarklet *(Recommended)*
+### Method A — Bird CLI *(Recommended, fastest)*
+
+Bird is a third-party CLI tool that fetches your Twitter bookmarks directly using your X session cookies. It pulls bookmarks directly from X's API — no manual scrolling needed, handles thousands of bookmarks in minutes.
+
+1. Install Bird:
+   ```bash
+   npm install -g @roobird/cli
+   # or on Windows: npm install -g @roobird/cli (bird.cmd will be available)
+   ```
+2. In Siftly → **Settings**, add your X auth token and ct0 cookie values
+   *(Find them in DevTools → Application → Cookies on x.com)*
+3. Go to **Import** → **Bird Fetch** and click **Fetch Bookmarks**
+4. Bird pulls all your bookmarks directly — fast, no browser needed
+
+### Method B — Bookmarklet *(No setup, works anywhere)*
 
 1. Go to **Import** in the Siftly sidebar
 2. Drag the **"Export X Bookmarks"** link to your browser's bookmark bar
@@ -135,7 +149,7 @@ Siftly has **built-in import tools** — no browser extensions required. Go to t
 6. When complete, click the purple **"Export N bookmarks"** button — `bookmarks.json` downloads
 7. Back in Siftly → **Import** → drop or upload the file
 
-### Method B — Browser Console Script
+### Method C — Browser Console Script
 
 1. Go to [x.com/i/bookmarks](https://x.com/i/bookmarks) while logged in to X
 2. Open DevTools: press `F12` (Windows/Linux) or `⌘⌥J` (Mac), then go to the **Console** tab
@@ -195,12 +209,13 @@ Interactive force-directed graph showing all bookmarks organized by category:
 
 ### 📚 Browse & Filter
 
-- **Grid view** (masonry layout) or **List view**
+- **Grid view** (virtualized masonry layout) or **List view**
+- Infinite scroll — just keep scrolling, new pages load automatically
 - Filter by category, media type (photo / video), or search text
 - Sort by newest or oldest
-- Pagination with 24 items per page
 - Active filter chips — removable individually or all at once
-- Hover any card to download media or jump to the original tweet
+- Click any card to open the **preview modal** — full tweet text, all URLs (GitHub repos, cloud links, videos), all hashtags, media lightbox with arrow navigation and keyboard support
+- GitHub repo links open directly in a new tab — no preview modal interception
 
 ### ⚙️ Categories
 
@@ -260,15 +275,15 @@ siftly/
 ├── app/
 │   ├── api/
 │   │   ├── analyze/images/   # Batch image vision analysis (GET progress, POST run)
-│   │   ├── bookmarks/        # List, filter, paginate, delete
+│   │   ├── bookmarks/        # List, filter, paginate, delete; extracts URLs and hashtags from rawJson
 │   │   │   └── [id]/categories/ # Per-bookmark category management
 │   │   ├── categories/       # Category CRUD
 │   │   │   └── [slug]/       # Individual category operations
-│   │   ├── categorize/       # 4-stage AI pipeline (start, status, stop)
+│   │   ├── categorize/       # 4-stage AI pipeline (start, status, stop); SSE streaming
 │   │   ├── export/           # CSV, JSON, ZIP export
 │   │   ├── import/           # JSON file import with dedup + auto-pipeline trigger
-│   │   │   ├── bookmarklet/  # Bookmarklet-specific import endpoint
-│   │   │   └── twitter/      # Twitter-specific import endpoint
+│   │   │   ├── bird-fetch/  # Bird CLI import — runs bird.cmd, parses output, stores bookmarks
+│   │   │   └── bookmarklet/  # Bookmarklet-specific import endpoint
 │   │   ├── link-preview/     # Server-side OG metadata scraper
 │   │   ├── media/            # Media proxy/download endpoint
 │   │   ├── mindmap/          # Graph nodes + edges for visualization
@@ -278,7 +293,7 @@ siftly/
 │   │   │   └── test/         # API key validation endpoint
 │   │   └── stats/            # Dashboard stats
 │   ├── ai-search/            # AI search page
-│   ├── bookmarks/            # Browse, filter, paginate
+│   ├── bookmarks/            # Browse + infinite scroll (virtualized masonry)
 │   ├── categories/           # Category management
 │   │   └── [slug]/           # Category detail page
 │   ├── categorize/           # Pipeline monitor with live progress
@@ -295,20 +310,23 @@ siftly/
 │   │   ├── root-node.tsx
 │   │   ├── chain-edge.tsx
 │   │   └── mindmap-context.ts
+│   ├── VirtualizedMasonryGrid.tsx  # Pretext-powered infinite-scroll masonry (only renders visible cards)
+│   ├── bookmark-card.tsx     # Bookmark card with preview modal, link chips, category chips
 │   ├── command-palette.tsx   # Cmd+K global search
 │   ├── nav.tsx               # Sidebar navigation
 │   └── theme-toggle.tsx      # Light/dark mode
 │
 ├── lib/
-│   ├── categorizer.ts        # AI categorization logic + default categories
+│   ├── categorizer.ts        # AI categorization logic + default categories (timeout-safe)
 │   ├── claude-cli-auth.ts    # Claude CLI OAuth session detection (macOS keychain)
-│   ├── vision-analyzer.ts    # Image analysis + batch semantic tagging
+│   ├── vision-analyzer.ts    # Image analysis + batch semantic tagging (timeout-safe)
 │   ├── image-context.ts      # Shared image context builder
 │   ├── fts.ts                # SQLite FTS5 full-text search index
 │   ├── rawjson-extractor.ts  # Entity extraction from raw tweet JSON
-│   ├── parser.ts             # Multi-format JSON parser
+│   ├── parser.ts             # Multi-format JSON parser (Bird, Bookmarklet, Twitter)
 │   ├── exporter.ts           # CSV, JSON, ZIP export
-│   ├── types.ts              # Shared TypeScript types
+│   ├── text-measure.ts       # @chenglou/pretext client-side text height measurement
+│   ├── types.ts              # Shared TypeScript types (includes BookmarkWithMedia.urls, hashtags)
 │   └── db.ts                 # Prisma client singleton
 │
 ├── prisma/
@@ -354,6 +372,7 @@ For Prisma command and workflow details, see:
 | [SQLite](https://sqlite.org) | — | Local database — zero setup, includes FTS5 |
 | [Tailwind CSS](https://tailwindcss.com) | v4 | Styling |
 | [Anthropic SDK](https://docs.anthropic.com) | — | Vision, semantic tagging, categorization, search |
+| [@chenglou/pretext](https://github.com/chenglou/pretext) | — | Canvas-based text height measurement for virtualized masonry |
 | [@xyflow/react](https://xyflow.com) | 12 | Interactive mindmap graph |
 | [Framer Motion](https://www.framer.com/motion/) | 12 | Animations |
 | [Radix UI](https://www.radix-ui.com) | — | Accessible UI primitives |

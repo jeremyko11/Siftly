@@ -279,11 +279,10 @@ export async function categorizeBatch(
   }
 
   const model = await getActiveModel()
-  const response = await client.createMessage({
-    model,
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
-  })
+  const response = await Promise.race([
+    client.createMessage({ model, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] }),
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SDK timeout (90s)')), 90_000)),
+  ])
 
   if (!response.text) throw new Error('No text content in AI response')
 

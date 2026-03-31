@@ -24,7 +24,7 @@ const ALLOWED_OPENAI_MODELS = [
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const [anthropic, anthropicModel, provider, openai, openaiModel, xClientId, xClientSecret] = await Promise.all([
+    const [anthropic, anthropicModel, provider, openai, openaiModel, xClientId, xClientSecret, xBirdAuthToken, xBirdCt0] = await Promise.all([
       prisma.setting.findUnique({ where: { key: 'anthropicApiKey' } }),
       prisma.setting.findUnique({ where: { key: 'anthropicModel' } }),
       prisma.setting.findUnique({ where: { key: 'aiProvider' } }),
@@ -32,6 +32,8 @@ export async function GET(): Promise<NextResponse> {
       prisma.setting.findUnique({ where: { key: 'openaiModel' } }),
       prisma.setting.findUnique({ where: { key: 'x_oauth_client_id' } }),
       prisma.setting.findUnique({ where: { key: 'x_oauth_client_secret' } }),
+      prisma.setting.findUnique({ where: { key: 'x_bird_auth_token' } }),
+      prisma.setting.findUnique({ where: { key: 'x_bird_ct0' } }),
     ])
 
     return NextResponse.json({
@@ -45,6 +47,7 @@ export async function GET(): Promise<NextResponse> {
       xOAuthClientId: maskKey(xClientId?.value ?? null),
       xOAuthClientSecret: maskKey(xClientSecret?.value ?? null),
       hasXOAuth: !!xClientId?.value,
+      hasBirdCredentials: !!xBirdAuthToken?.value && !!xBirdCt0?.value,
     })
   } catch (err) {
     console.error('Settings GET error:', err)
@@ -64,6 +67,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     openaiModel?: string
     xOAuthClientId?: string
     xOAuthClientSecret?: string
+    xBirdAuthToken?: string
+    xBirdCt0?: string
   } = {}
   try {
     body = await request.json()
@@ -187,6 +192,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
   }
 
+  // Save Bird CLI credentials if provided
+  const { xBirdAuthToken, xBirdCt0 } = body
+  const birdKeys: { key: string; value: string | undefined }[] = [
+    { key: 'x_bird_auth_token', value: xBirdAuthToken },
+    { key: 'x_bird_ct0', value: xBirdCt0 },
+  ]
+  const birdToSave = birdKeys.filter((k) => k.value !== undefined && k.value.trim() !== '')
+  if (birdToSave.length > 0) {
+    try {
+      for (const { key, value } of birdToSave) {
+        await prisma.setting.upsert({
+          where: { key },
+          update: { value: value!.trim() },
+          create: { key, value: value!.trim() },
+        })
+      }
+      return NextResponse.json({ saved: true })
+    } catch (err) {
+      console.error('Settings POST (Bird) error:', err)
+      return NextResponse.json(
+        { error: `Failed to save: ${err instanceof Error ? err.message : String(err)}` },
+        { status: 500 },
+      )
+    }
+  }
+
   return NextResponse.json({ error: 'No setting provided' }, { status: 400 })
 }
 
@@ -198,7 +229,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const allowed = ['anthropicApiKey', 'openaiApiKey', 'x_oauth_client_id', 'x_oauth_client_secret']
+  const allowed = ['anthropicApiKey', 'openaiApiKey', 'x_oauth_client_id', 'x_oauth_client_secret', 'x_bird_auth_token', 'x_bird_ct0']
   if (!body.key || !allowed.includes(body.key)) {
     return NextResponse.json({ error: 'Invalid key' }, { status: 400 })
   }

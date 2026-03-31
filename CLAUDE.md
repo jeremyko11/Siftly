@@ -45,31 +45,38 @@ npm run build         # Production build
 app/
   api/
     categorize/       # 4-stage AI pipeline (start/stop/status via SSE)
-    import/           # Bookmark JSON import + dedup
+    import/            # JSON import + Bird CLI import
+    import/bird-fetch/ # Bird CLI → bookmark conversion + storage
     search/ai/        # FTS5 + Claude semantic search
     settings/
       cli-status/     # GET — returns Claude CLI auth status
       test/           # POST — validates API key or CLI auth
     analyze/images/   # Vision analysis progress + trigger
-    bookmarks/        # CRUD + filtering
+    bookmarks/        # CRUD + filtering; returns urls/hashtags from rawJson
     categories/       # Category management
     mindmap/          # Graph data
     stats/            # Dashboard counts
-  import/             # 3-step import UI
-  mindmap/            # Interactive force graph
-  settings/           # API keys, model selection
-  ai-search/          # Natural language search UI
-  bookmarks/          # Browse + filter UI
-  categorize/         # Pipeline monitor
+  import/              # 3-step import UI
+  mindmap/             # Interactive force graph
+  settings/            # API keys, model selection
+  ai-search/           # Natural language search UI
+  bookmarks/           # Browse + infinite scroll (VirtualizedMasonryGrid)
+  categorize/          # Pipeline monitor
 
 lib/
   claude-cli-auth.ts  # Claude CLI OAuth session (macOS keychain)
-  categorizer.ts      # AI categorization + default categories
-  vision-analyzer.ts  # Image vision + semantic tagging
+  categorizer.ts      # AI categorization + default categories (Promise.race timeouts)
+  vision-analyzer.ts  # Image vision + semantic tagging (Promise.race timeouts)
+  text-measure.ts     # @chenglou/pretext client-side text height measurement
   fts.ts              # SQLite FTS5 full-text search
   rawjson-extractor.ts # Entity extraction from tweet JSON
-  parser.ts           # Multi-format bookmark JSON parser
+  parser.ts           # Multi-format bookmark JSON parser (Bird, Bookmarklet, Twitter)
   exporter.ts         # CSV / JSON / ZIP export
+
+components/
+  VirtualizedMasonryGrid.tsx  # Pretext-powered infinite-scroll masonry
+  bookmark-card.tsx     # Card with preview modal, link chips (GitHub → direct nav)
+  nav.tsx               # Sidebar + uncategorized count badge
 
 prisma/schema.prisma  # SQLite schema (Bookmark, Category, MediaItem, Setting, ImportJob)
 ```

@@ -24,6 +24,9 @@ export interface BookmarkWithMedia {
   importedAt?: string
   mediaItems: MediaItem[]
   categories: BookmarkCategory[]
+  rawJson?: string
+  urls?: string[]
+  hashtags?: string[]
 }
 
 export interface Category {

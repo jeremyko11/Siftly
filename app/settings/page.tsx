@@ -108,6 +108,7 @@ function ApiKeyField({
   docHref,
   onToast,
   testProvider,
+  ti18n,
 }: {
   label: string
   placeholder: string
@@ -116,6 +117,7 @@ function ApiKeyField({
   docHref: string
   onToast: (t: Toast) => void
   testProvider?: string
+  ti18n: ReturnType<typeof useI18n>['t']
 }) {
   const [key, setKey] = useState('')
   const [showKey, setShowKey] = useState(false)
@@ -140,7 +142,7 @@ function ApiKeyField({
 
   async function handleSave() {
     if (!key.trim()) {
-      onToast({ type: 'error', message: 'Please enter an API key' })
+      onToast({ type: 'error', message: ti18n.error })
       return
     }
     setSaving(true)
@@ -153,17 +155,17 @@ function ApiKeyField({
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        throw new Error(data.error ?? 'Failed to save')
+        throw new Error(data.error ?? ti18n.error)
       }
       setSavedMasked(key.trim().slice(0, 6) + '••••••••' + key.trim().slice(-4))
       setKey('')
       // Auto-test after save
       if (testProvider) void handleTest()
-      else onToast({ type: 'success', message: `${label} saved successfully` })
+      else onToast({ type: 'success', message: `${label} ${ti18n.saved}` })
     } catch (err) {
       onToast({
         type: 'error',
-        message: err instanceof Error ? err.message : 'Failed to save API key',
+        message: err instanceof Error ? err.message : ti18n.failedToSaveApiKey,
       })
     } finally {
       setSaving(false)
@@ -180,13 +182,13 @@ function ApiKeyField({
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        throw new Error(data.error ?? 'Failed to remove')
+        throw new Error(data.error ?? ti18n.error)
       }
       setSavedMasked(null)
       setTestState('idle')
-      onToast({ type: 'success', message: `${label} removed` })
+      onToast({ type: 'success', message: `${label} ${ti18n.remove}` })
     } catch (err) {
-      onToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to remove key' })
+      onToast({ type: 'error', message: err instanceof Error ? err.message : ti18n.failedToRemoveKey })
     } finally {
       setRemoving(false)
     }
@@ -233,7 +235,7 @@ function ApiKeyField({
               className="shrink-0 text-xs text-red-500/70 hover:text-red-400 transition-colors disabled:opacity-50"
               title="Remove saved key"
             >
-              {removing ? 'Removing…' : 'Remove'}
+              {removing ? ti18n.removing : ti18n.remove}
             </button>
           )}
           {testProvider && savedMasked && testState === 'idle' && (
@@ -246,17 +248,17 @@ function ApiKeyField({
           )}
           {testState === 'testing' && (
             <span className="flex items-center gap-1 text-xs text-zinc-400 shrink-0">
-              <Loader2 size={11} className="animate-spin" /> Testing…
+              <Loader2 size={11} className="animate-spin" /> {ti18n.testing}
             </span>
           )}
           {testState === 'ok' && (
             <span className="flex items-center gap-1 text-xs text-emerald-400 shrink-0">
-              <Check size={11} /> Working
+              <Check size={11} /> {ti18n.working}
             </span>
           )}
           {testState === 'fail' && (
             <span className="flex items-center gap-1 text-xs text-red-400 shrink-0" title={testError}>
-              <X size={11} /> {testError.slice(0, 30) || 'Failed'}
+              <X size={11} /> {testError.slice(0, 30) || ti18n.failed}
             </span>
           )}
         </div>
@@ -268,14 +270,14 @@ function ApiKeyField({
             value={key}
             onChange={(e) => setKey(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void handleSave()}
-            placeholder={savedMasked ? 'Enter new key to replace…' : placeholder}
+            placeholder={savedMasked ? ti18n.enterNewKeyToReplace : placeholder}
             className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder:text-zinc-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-200 pr-10 font-mono"
           />
           <button
             type="button"
             onClick={() => setShowKey((v) => !v)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
-            aria-label={showKey ? 'Hide key' : 'Show key'}
+            aria-label={showKey ? ti18n.hideKey : ti18n.showKey}
           >
             {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
@@ -285,7 +287,7 @@ function ApiKeyField({
           disabled={saving}
           className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors shrink-0"
         >
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? ti18n.saving : ti18n.save}
         </button>
       </div>
       <div className="flex items-center justify-between">
@@ -296,7 +298,7 @@ function ApiKeyField({
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-400 transition-colors"
         >
-          Get key <ExternalLink size={11} />
+          {ti18n.getKey} <ExternalLink size={11} />
         </a>
       </div>
     </div>
@@ -308,11 +310,13 @@ function ModelSelector({
   settingKey,
   defaultValue,
   onToast,
+  t,
 }: {
   models: { value: string; label: string; description: string }[]
   settingKey: 'anthropicModel' | 'openaiModel'
   defaultValue: string
   onToast: (t: Toast) => void
+  t: ReturnType<typeof useI18n>['t']
 }) {
   const [value, setValue] = useState(defaultValue)
   const [saved, setSaved] = useState(false)
@@ -336,7 +340,7 @@ function ModelSelector({
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {
-      onToast({ type: 'error', message: 'Failed to save model preference' })
+      onToast({ type: 'error', message: t.failedToSaveModel })
     }
   }
 
@@ -345,7 +349,7 @@ function ModelSelector({
   return (
     <>
       <div className="flex items-center gap-2 mt-2.5">
-        <span className="text-xs text-zinc-500 shrink-0">Model:</span>
+        <span className="text-xs text-zinc-500 shrink-0">{t.model}</span>
         <div className="relative flex-1">
           <select
             value={value}
@@ -384,7 +388,7 @@ interface CliStatus {
   expired?: boolean
 }
 
-function ClaudeCliStatusBox() {
+function ClaudeCliStatusBox({ t }: { t: ReturnType<typeof useI18n>['t'] }) {
   const [status, setStatus] = useState<CliStatus | null>(null)
 
   useEffect(() => {
@@ -405,10 +409,10 @@ function ClaudeCliStatusBox() {
         <Check size={15} className="text-emerald-400 shrink-0 mt-0.5" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-emerald-300">
-            Claude CLI detected — no API key needed
+            {t.cliDetected}
           </p>
           <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
-            Signed in as <span className="text-zinc-300">{tier}</span> via Claude Code. Siftly will use your subscription automatically. An API key below will take priority if set.
+            {t.signedInAs} <span className="text-zinc-300">{tier}</span> {t.willUseSubscriptionAutomatically}
           </p>
         </div>
       </div>
@@ -420,9 +424,9 @@ function ClaudeCliStatusBox() {
       <div className="flex gap-3 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 mb-5">
         <AlertCircle size={15} className="text-amber-400 shrink-0 mt-0.5" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-amber-300">Claude CLI session expired</p>
+          <p className="text-sm font-medium text-amber-300">{t.cliSessionExpired}</p>
           <p className="text-xs text-zinc-500 mt-0.5">
-            Run <span className="font-mono text-zinc-300">claude</span> in your terminal to refresh the session, then reload this page.
+            {t.runCluadeRefresh}
           </p>
         </div>
       </div>
@@ -433,16 +437,16 @@ function ClaudeCliStatusBox() {
     <div className="flex gap-3 p-3.5 rounded-xl bg-zinc-800/60 border border-zinc-700 mb-5">
       <Terminal size={15} className="text-zinc-400 shrink-0 mt-0.5" />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-zinc-200">No Claude CLI detected</p>
+        <p className="text-sm font-medium text-zinc-200">{t.noCliDetected}</p>
         <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
-          Install Claude Code and sign in to skip the API key entirely, or paste your API key below.
+          {t.installClaudeCode}
         </p>
       </div>
     </div>
   )
 }
 
-function CodexCliStatusBox() {
+function CodexCliStatusBox({ t }: { t: ReturnType<typeof useI18n>['t'] }) {
   const [status, setStatus] = useState<{ available: boolean; expired?: boolean; planType?: string; authMode?: string } | null>(null)
 
   useEffect(() => {
@@ -500,7 +504,7 @@ function CodexCliStatusBox() {
   )
 }
 
-function ProviderToggle({ value, onChange }: { value: 'anthropic' | 'openai'; onChange: (v: 'anthropic' | 'openai') => void }) {
+function ProviderToggle({ value, onChange, t }: { value: 'anthropic' | 'openai'; onChange: (v: 'anthropic' | 'openai') => void; t: ReturnType<typeof useI18n>['t'] }) {
   return (
     <div className="flex items-center gap-1 p-1 rounded-xl bg-zinc-800 border border-zinc-700 mb-5">
       <button
@@ -511,7 +515,7 @@ function ProviderToggle({ value, onChange }: { value: 'anthropic' | 'openai'; on
             : 'text-zinc-400 hover:text-zinc-200'
         }`}
       >
-        Anthropic (Claude)
+        {t.anthropicClaude}
       </button>
       <button
         onClick={() => onChange('openai')}
@@ -521,13 +525,13 @@ function ProviderToggle({ value, onChange }: { value: 'anthropic' | 'openai'; on
             : 'text-zinc-400 hover:text-zinc-200'
         }`}
       >
-        OpenAI (GPT)
+        {t.openaiGpt}
       </button>
     </div>
   )
 }
 
-function ApiKeySection({ onToast }: { onToast: (t: Toast) => void }) {
+function ApiKeySection({ onToast, t }: { onToast: (t: Toast) => void; t: ReturnType<typeof useI18n>['t'] }) {
   const [provider, setProvider] = useState<'anthropic' | 'openai' | null>(null)
 
   useEffect(() => {
@@ -548,11 +552,11 @@ function ApiKeySection({ onToast }: { onToast: (t: Toast) => void }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: newProvider }),
       })
-      if (!res.ok) throw new Error('Failed to save provider')
-      onToast({ type: 'success', message: `Switched to ${newProvider === 'openai' ? 'OpenAI' : 'Anthropic'}` })
+      if (!res.ok) throw new Error('Failed')
+      onToast({ type: 'success', message: `${t.switchedTo} ${newProvider === 'openai' ? 'OpenAI' : 'Anthropic'}` })
     } catch {
       setProvider(prev) // revert on failure
-      onToast({ type: 'error', message: 'Failed to save provider preference' })
+      onToast({ type: 'error', message: t.failedToSaveProvider })
     }
   }
 
@@ -561,11 +565,11 @@ function ApiKeySection({ onToast }: { onToast: (t: Toast) => void }) {
     return (
       <Section
         icon={Key}
-        title="AI Provider"
-        description="Choose your AI provider and configure keys. CLI auth means no key needed."
+        title={t.aiProvider}
+        description={t.aiProviderDescription}
       >
         <div className="flex items-center gap-2 text-sm text-zinc-500">
-          <Loader2 size={14} className="animate-spin" /> Loading settings…
+          <Loader2 size={14} className="animate-spin" /> {t.loadingSettings}
         </div>
       </Section>
     )
@@ -574,61 +578,65 @@ function ApiKeySection({ onToast }: { onToast: (t: Toast) => void }) {
   return (
     <Section
       icon={Key}
-      title="AI Provider"
-      description="Choose your AI provider and configure keys. CLI auth means no key needed."
+      title={t.aiProvider}
+      description={t.aiProviderDescription}
     >
-      <ProviderToggle value={provider} onChange={(v) => void handleProviderChange(v)} />
+      <ProviderToggle value={provider} onChange={(v) => void handleProviderChange(v)} t={t} />
 
       {provider === 'anthropic' ? (
         <>
-          <ClaudeCliStatusBox />
+          <ClaudeCliStatusBox t={t} />
           <div className="space-y-5">
             <div>
               <ApiKeyField
-                label="Anthropic (Claude)"
-                placeholder="sk-ant-api03-..."
+                label={t.anthropicClaude}
+                placeholder={t.apiKeyPlaceholder}
                 fieldKey="anthropicApiKey"
-                hint="Used for AI categorization, search, and image analysis."
+                hint={t.usedForAiCategorization}
                 docHref="https://console.anthropic.com"
                 onToast={onToast}
                 testProvider="anthropic"
+                ti18n={t}
               />
               <ModelSelector
                 models={ANTHROPIC_MODELS}
                 settingKey="anthropicModel"
                 defaultValue="claude-haiku-4-5-20251001"
                 onToast={onToast}
+                t={t}
               />
-              <p className="text-xs text-zinc-500 mt-1.5">Applies to all AI operations — API key <strong className="text-zinc-400 font-medium">and Claude CLI</strong></p>
+              <p className="text-xs text-zinc-500 mt-1.5">{t.appliesToAllAiOps}</p>
             </div>
           </div>
         </>
       ) : (
         <>
-          <CodexCliStatusBox />
+          <CodexCliStatusBox t={t} />
           <div className="space-y-5">
             <div>
               <ApiKeyField
-                label="OpenAI"
+                label={t.openaiGpt}
                 placeholder="sk-..."
                 fieldKey="openaiApiKey"
-                hint="Used for AI categorization, search, and image analysis."
+                hint={t.usedForAiCategorization}
                 docHref="https://platform.openai.com/api-keys"
                 onToast={onToast}
                 testProvider="openai"
+                ti18n={t}
               />
               <ModelSelector
                 models={OPENAI_MODELS}
                 settingKey="openaiModel"
                 defaultValue="gpt-4.1-mini"
                 onToast={onToast}
+                t={t}
               />
-              <p className="text-xs text-zinc-500 mt-1.5">Applies to all AI operations — API key <strong className="text-zinc-400 font-medium">and Codex CLI</strong></p>
+              <p className="text-xs text-zinc-500 mt-1.5">{t.appliesToAllAiOps}</p>
             </div>
           </div>
         </>
       )}
-      <p className="text-xs text-zinc-600 mt-4">Keys are stored in plaintext in your local SQLite database (<code className="font-mono">prisma/dev.db</code>). Do not expose the database file.</p>
+      <p className="text-xs text-zinc-600 mt-4">{t.keysStoredPlaintext} (<code className="font-mono">prisma/dev.db</code>). {t.doNotExposeDatabase}</p>
     </Section>
   )
 }
@@ -660,30 +668,30 @@ function ExportButton({
   )
 }
 
-function DataSection() {
+function DataSection({ t }: { t: ReturnType<typeof useI18n>['t'] }) {
   return (
     <Section
       icon={Database}
-      title="Data Management"
-      description="Export all your bookmarks and category data for backup or migration."
+      title={t.dataManagement}
+      description={t.dataManagementDescription}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <ExportButton
-          label="Export as CSV"
+          label={t.exportAsCsv}
           href="/api/export?type=csv"
-          description="Spreadsheet-compatible format"
+          description={t.spreadsheetCompatible}
         />
         <ExportButton
-          label="Export as JSON"
+          label={t.exportAsJson}
           href="/api/export?type=json"
-          description="Full data with all fields"
+          description={t.fullDataWithFields}
         />
       </div>
     </Section>
   )
 }
 
-function DangerZoneSection({ onToast }: { onToast: (t: Toast) => void }) {
+function DangerZoneSection({ onToast, t }: { onToast: (t: Toast) => void; t: ReturnType<typeof useI18n>['t'] }) {
   const [confirming, setConfirming] = useState(false)
   const [clearing, setClearing] = useState(false)
   const [cleared, setCleared] = useState(false)
@@ -696,7 +704,7 @@ function DangerZoneSection({ onToast }: { onToast: (t: Toast) => void }) {
         const data = await res.json() as { error?: string }
         throw new Error(data.error ?? 'Failed to clear')
       }
-      onToast({ type: 'success', message: 'All bookmarks deleted successfully' })
+      onToast({ type: 'success', message: t.allBookmarksDeleted })
       setConfirming(false)
       setCleared(true)
       setTimeout(() => setCleared(false), 3000)
@@ -711,19 +719,19 @@ function DangerZoneSection({ onToast }: { onToast: (t: Toast) => void }) {
   return (
     <Section
       icon={Shield}
-      title="Danger Zone"
-      description="Irreversible actions that affect all your data."
+      title={t.dangerZone}
+      description={t.dangerZoneDescription}
       variant="danger"
     >
       <div className="flex items-center justify-between p-4 rounded-xl bg-red-900/20 border border-red-800/40">
         <div>
-          <p className="text-sm font-medium text-zinc-300">Clear all bookmarks</p>
-          <p className="text-xs text-zinc-500 mt-0.5">Permanently delete all imported bookmarks</p>
+          <p className="text-sm font-medium text-zinc-300">{t.clearAllBookmarks}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{t.permanentlyDeleteBookmarks}</p>
         </div>
         {cleared ? (
           <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
             <Check size={14} />
-            Cleared
+            {t.cleared}
           </div>
         ) : !confirming ? (
           <button
@@ -731,17 +739,17 @@ function DangerZoneSection({ onToast }: { onToast: (t: Toast) => void }) {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-400 bg-red-800/30 hover:bg-red-700/40 border border-red-700/50 hover:border-red-600/60 transition-all"
           >
             <Trash2 size={14} />
-            Clear all
+            {t.clearAll}
           </button>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-400 mr-1">Are you sure?</span>
+            <span className="text-xs text-zinc-400 mr-1">{t.areYouSure}</span>
             <button
               onClick={() => setConfirming(false)}
               disabled={clearing}
               className="px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
             >
-              Cancel
+              {t.cancel}
             </button>
             <button
               onClick={() => void handleClearAll()}
@@ -749,7 +757,7 @@ function DangerZoneSection({ onToast }: { onToast: (t: Toast) => void }) {
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Trash2 size={12} />
-              {clearing ? 'Deleting…' : 'Yes, delete all'}
+              {clearing ? t.deleting : t.yesDeleteAll}
             </button>
           </div>
         )}
@@ -768,7 +776,7 @@ const TECH_STACK = [
 
 const DONATION_ADDRESS = '0xcF10B967a9e422753812004Cd59990f62E360760'
 
-function AboutSection() {
+function AboutSection({ t }: { t: ReturnType<typeof useI18n>['t'] }) {
   const [copied, setCopied] = useState(false)
 
   function copyAddress() {
@@ -779,12 +787,9 @@ function AboutSection() {
   }
 
   return (
-    <Section icon={Info} title="About Siftly" description="Self-hosted Twitter bookmark manager">
+    <Section icon={Info} title={t.about} description={t.aboutDescription}>
       <p className="text-sm text-zinc-400 leading-relaxed mb-5">
-        <strong className="text-zinc-100 font-semibold">Siftly</strong> is a self-hosted app for
-        organizing your Twitter/X bookmarks. Use the built-in bookmarklet or console script to import,
-        then run the 4-stage AI pipeline to analyze images, extract entities, generate semantic tags, and
-        auto-categorize — then explore connections through the interactive mindmap.
+        <strong className="text-zinc-100 font-semibold">Siftly</strong> {t.siftlyAboutDetail}
       </p>
 
       {/* Builder + support row */}
@@ -799,7 +804,7 @@ function AboutSection() {
           <span className="text-base leading-none">𝕏</span>
           <div className="min-w-0">
             <p className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors">@viperr</p>
-            <p className="text-[11px] text-zinc-600">Built &amp; open-sourced by</p>
+            <p className="text-[11px] text-zinc-600">{t.builtBy}</p>
           </div>
           <ExternalLink size={12} className="text-zinc-600 group-hover:text-zinc-400 transition-colors ml-auto shrink-0" />
         </a>
@@ -808,10 +813,10 @@ function AboutSection() {
         <div className="flex-1 px-4 py-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
           <div className="flex items-center gap-2 mb-2">
             <Coffee size={13} className="text-amber-400 shrink-0" />
-            <span className="text-xs font-semibold text-amber-300">Support development</span>
+            <span className="text-xs font-semibold text-amber-300">{t.supportDevelopment}</span>
           </div>
           <p className="text-[11px] text-zinc-500 mb-2.5 leading-relaxed">
-            If Siftly saves you time, consider leaving a tip
+            {t.ifSiftlySavesYouTime}
           </p>
           <button
             onClick={copyAddress}
@@ -826,7 +831,7 @@ function AboutSection() {
             }
           </button>
           {copied && (
-            <p className="text-[10px] text-emerald-400 mt-1.5 text-center">Address copied!</p>
+            <p className="text-[10px] text-emerald-400 mt-1.5 text-center">{t.addressCopied}</p>
           )}
         </div>
       </div>
@@ -834,7 +839,7 @@ function AboutSection() {
   )
 }
 
-function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
+function XOAuthSection({ onToast, t }: { onToast: (t: Toast) => void; t: ReturnType<typeof useI18n>['t'] }) {
   const [clientId, setClientId] = useState('')
   const [clientSecret, setClientSecret] = useState('')
   const [savedId, setSavedId] = useState<string | null>(null)
@@ -853,7 +858,7 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
 
   async function handleSave() {
     if (!clientId.trim()) {
-      onToast({ type: 'error', message: 'Client ID is required' })
+      onToast({ type: 'error', message: `${t.clientId} ${t.error}` })
       return
     }
     setSaving(true)
@@ -867,15 +872,15 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({})) as { error?: string }
-        throw new Error(data.error ?? 'Failed to save')
+        throw new Error(data.error ?? t.error)
       }
       setSavedId(clientId.trim().slice(0, 6) + '••••' + clientId.trim().slice(-4))
       if (clientSecret.trim()) setSavedSecret(clientSecret.trim().slice(0, 4) + '••••')
       setClientId('')
       setClientSecret('')
-      onToast({ type: 'success', message: 'X OAuth credentials saved' })
+      onToast({ type: 'success', message: t.credentialsSaved })
     } catch (err) {
-      onToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to save' })
+      onToast({ type: 'error', message: err instanceof Error ? err.message : t.failedToSaveOAuth })
     } finally {
       setSaving(false)
     }
@@ -895,9 +900,9 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
       })
       setSavedId(null)
       setSavedSecret(null)
-      onToast({ type: 'success', message: 'X OAuth credentials removed' })
+      onToast({ type: 'success', message: t.credentialsRemoved })
     } catch (err) {
-      onToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to remove' })
+      onToast({ type: 'error', message: err instanceof Error ? err.message : t.failedToRemoveOAuth })
     }
   }
 
@@ -908,8 +913,8 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
   return (
     <Section
       icon={Shield}
-      title="X (Twitter) OAuth 2.0"
-      description="Connect your X account to import bookmarks using the official API."
+      title={t.xOAuth}
+      description={t.xOAuthDescription}
     >
       <div className="space-y-4">
         {savedId ? (
@@ -918,12 +923,12 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
               <div className="flex items-center gap-2.5">
                 <Check size={15} className="text-emerald-400 shrink-0" />
                 <div className="text-sm">
-                  <span className="text-emerald-300">Client ID: </span>
+                  <span className="text-emerald-300">{t.clientId}: </span>
                   <span className="text-zinc-400 font-mono text-xs">{savedId}</span>
                   {savedSecret && (
                     <>
                       <span className="text-zinc-600 mx-2">·</span>
-                      <span className="text-emerald-300">Secret: </span>
+                      <span className="text-emerald-300">{t.clientSecret}: </span>
                       <span className="text-zinc-400 font-mono text-xs">{savedSecret}</span>
                     </>
                   )}
@@ -932,7 +937,7 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
               <button
                 onClick={handleRemove}
                 className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                title="Remove X OAuth credentials"
+                title={t.remove}
               >
                 <Trash2 size={14} />
               </button>
@@ -943,14 +948,14 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
             <div className="space-y-2">
               <input
                 type="text"
-                placeholder="Client ID"
+                placeholder={t.clientId}
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 font-mono"
               />
               <input
                 type="password"
-                placeholder="Client Secret (optional for public clients)"
+                placeholder={t.clientSecretOptional}
                 value={clientSecret}
                 onChange={(e) => setClientSecret(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 font-mono"
@@ -962,22 +967,161 @@ function XOAuthSection({ onToast }: { onToast: (t: Toast) => void }) {
               className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}
-              {saving ? 'Saving...' : 'Save X OAuth Credentials'}
+              {saving ? t.saving : t.saveOAuthCredentials}
             </button>
           </div>
         )}
 
         <div className="text-xs text-zinc-600 space-y-1">
           <p>
-            Get credentials from the{' '}
+            {t.getCredentialsFrom}{' '}
             <a href="https://developer.x.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">
-              X Developer Portal
+              {t.xDeveloperPortal}
             </a>
           </p>
           <p>
-            Callback URL: <code className="bg-zinc-800 px-1.5 py-0.5 rounded font-mono text-zinc-400">{callbackUrl}</code>
+            {t.callbackUrl} <code className="bg-zinc-800 px-1.5 py-0.5 rounded font-mono text-zinc-400">{callbackUrl}</code>
           </p>
         </div>
+      </div>
+    </Section>
+  )
+}
+
+function BirdCliSection({ onToast, t }: { onToast: (t: Toast) => void; t: ReturnType<typeof useI18n>['t'] }) {
+  const [authToken, setAuthToken] = useState('')
+  const [ct0, setCt0] = useState('')
+  const [savedToken, setSavedToken] = useState<string | null>(null)
+  const [savedCt0, setSavedCt0] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [removing, setRemoving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((d: Record<string, unknown>) => {
+        if (d.hasBirdCredentials) {
+          setSavedToken('********')
+          setSavedCt0('********')
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  async function handleSave() {
+    if (!authToken.trim() || !ct0.trim()) {
+      onToast({ type: 'error', message: `${t.birdAuthToken} & ${t.birdCt0} ${t.error}` })
+      return
+    }
+    setSaving(true)
+    try {
+      const res1 = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xBirdAuthToken: authToken.trim() }),
+      })
+      if (!res1.ok) throw new Error('Failed to save auth_token')
+      const res2 = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xBirdCt0: ct0.trim() }),
+      })
+      if (!res2.ok) throw new Error('Failed to save ct0')
+      setSavedToken(authToken.trim().slice(0, 6) + '••••••••' + authToken.trim().slice(-4))
+      setSavedCt0(ct0.trim().slice(0, 4) + '••••••••' + ct0.trim().slice(-4))
+      setAuthToken('')
+      setCt0('')
+      onToast({ type: 'success', message: t.birdCredentialsSaved })
+    } catch (err) {
+      onToast({ type: 'error', message: err instanceof Error ? err.message : t.error })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleRemove() {
+    setRemoving(true)
+    try {
+      await fetch('/api/settings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'x_bird_auth_token' }),
+      })
+      await fetch('/api/settings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'x_bird_ct0' }),
+      })
+      setSavedToken(null)
+      setSavedCt0(null)
+      onToast({ type: 'success', message: t.credentialsRemoved })
+    } catch (err) {
+      onToast({ type: 'error', message: err instanceof Error ? err.message : t.error })
+    } finally {
+      setRemoving(false)
+    }
+  }
+
+  return (
+    <Section
+      icon={Terminal}
+      title={t.birdCli}
+      description={t.birdCliDescription}
+    >
+      <div className="space-y-4">
+        {savedToken ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
+              <div className="flex items-center gap-2.5">
+                <Check size={15} className="text-emerald-400 shrink-0" />
+                <div className="text-sm">
+                  <span className="text-emerald-300">{t.birdAuthToken}: </span>
+                  <span className="text-zinc-400 font-mono text-xs">{savedToken}</span>
+                  <span className="text-zinc-600 mx-2">·</span>
+                  <span className="text-emerald-300">{t.birdCt0}: </span>
+                  <span className="text-zinc-400 font-mono text-xs">{savedCt0}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => void handleRemove()}
+                disabled={removing}
+                className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                title={t.remove}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <input
+                type="password"
+                placeholder={t.birdAuthToken}
+                value={authToken}
+                onChange={(e) => setAuthToken(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 font-mono"
+              />
+              <p className="text-xs text-zinc-600 -mt-1">{t.birdAuthTokenHint}</p>
+              <input
+                type="password"
+                placeholder={t.birdCt0}
+                value={ct0}
+                onChange={(e) => setCt0(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 font-mono"
+              />
+              <p className="text-xs text-zinc-600 -mt-1">{t.birdCt0Hint}</p>
+            </div>
+            <button
+              onClick={() => void handleSave()}
+              disabled={saving || !authToken.trim() || !ct0.trim()}
+              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}
+              {saving ? t.saving : t.save}
+            </button>
+          </div>
+        )}
       </div>
     </Section>
   )
@@ -1062,11 +1206,12 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <ApiKeySection onToast={showToast} />
-        <XOAuthSection onToast={showToast} />
-        <DataSection />
-        <DangerZoneSection onToast={showToast} />
-        <AboutSection />
+        <ApiKeySection onToast={showToast} t={t} />
+        <XOAuthSection onToast={showToast} t={t} />
+        <BirdCliSection onToast={showToast} t={t} />
+        <DataSection t={t} />
+        <DangerZoneSection onToast={showToast} t={t} />
+        <AboutSection t={t} />
       </div>
     </div>
   )

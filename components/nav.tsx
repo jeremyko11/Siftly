@@ -38,6 +38,7 @@ function getNavItems(t: ReturnType<typeof useI18n>['t']): NavItem[] {
 const BUILDER_X = 'https://x.com/viperr'
 
 function SponsorFooter() {
+  const { t } = useI18n()
   return (
     <div className="mx-3 mt-auto mb-3 pt-3 border-t border-zinc-800/50 space-y-2">
       {/* Builder credit */}
@@ -48,7 +49,7 @@ function SponsorFooter() {
         className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-all"
       >
         <span className="text-[13px]">&#x1D54F;</span>
-        <span className="text-[11px] font-medium">Built by @viperr</span>
+        <span className="text-[11px] font-medium">{t.builtBy} @viperr</span>
       </a>
 
       {/* Sponsor spot */}
@@ -60,7 +61,7 @@ function SponsorFooter() {
       >
         <div className="w-7 h-7 rounded-full bg-zinc-700/50 border border-zinc-600/30 shrink-0" />
         <div className="flex flex-col min-w-0">
-          <span className="text-[11px] font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors leading-tight">Support Siftly by sponsoring your logo here</span>
+          <span className="text-[11px] font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors leading-tight">{t.supportDevelopment}</span>
           <span className="text-[10px] text-zinc-600 leading-tight mt-1">DM @viperr on X</span>
         </div>
       </a>
@@ -95,11 +96,28 @@ const PIPELINE_STAGE_LABELS: Record<string, keyof ReturnType<typeof useI18n>['t'
   parallel: 'processingInParallel',
 }
 
+const CAT_TRANSLATION_KEYS: Record<string, keyof ReturnType<typeof useI18n>['t']> = {
+  'ai-resources': 'catAiResources',
+  'finance-crypto': 'catFinanceCrypto',
+  'design': 'catDesign',
+  'dev-tools': 'catDevTools',
+  'finance-investing': 'catFinanceInvesting',
+  'funny-memes': 'catFunnyMemes',
+  'general': 'catGeneral',
+  'health-wellness': 'catHealthWellness',
+  'news': 'catNews',
+  'productivity': 'catProductivity',
+  'science-research': 'catScienceResearch',
+  'security-privacy': 'catSecurityPrivacy',
+  'startups-business': 'catStartupsBusiness',
+}
+
 export default function Nav() {
   const pathname = usePathname()
   const { t } = useI18n()
   const [categories, setCategories] = useState<CategoryItem[]>([])
   const [totalBookmarks, setTotalBookmarks] = useState<number | null>(null)
+  const [uncategorizedCount, setUncategorizedCount] = useState<number>(0)
   const [showAllCats, setShowAllCats] = useState(true)
   const [collectionsOpen, setCollectionsOpen] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -125,6 +143,7 @@ export default function Nav() {
     function handleCleared() {
       setCategories([])
       setTotalBookmarks(0)
+      setUncategorizedCount(0)
     }
     window.addEventListener('siftly:cleared', handleCleared)
     return () => window.removeEventListener('siftly:cleared', handleCleared)
@@ -134,8 +153,9 @@ export default function Nav() {
     // Fetch stats
     fetch('/api/stats')
       .then((r) => r.json())
-      .then((d: { totalBookmarks?: number }) => {
+      .then((d: { totalBookmarks?: number; uncategorizedCount?: number }) => {
         if (d.totalBookmarks !== undefined) setTotalBookmarks(d.totalBookmarks)
+        if (d.uncategorizedCount !== undefined) setUncategorizedCount(d.uncategorizedCount)
       })
       .catch(() => {})
 
@@ -193,6 +213,24 @@ export default function Nav() {
         </Link>
       )}
 
+      {/* Unprocessed bookmarks banner — only show when pipeline is idle and many uncategorized */}
+      {(!pipeline || pipeline.status === 'idle') && uncategorizedCount > 10 && pathname !== '/categorize' && (
+        <Link
+          href="/categorize"
+          className="mx-3 mt-2 flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15 transition-colors"
+        >
+          <Sparkles size={13} className="text-amber-400 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium text-amber-300 leading-tight">
+              {uncategorizedCount} {t.uncategorized} bookmarks
+            </p>
+            <p className="text-[10px] text-amber-500/70 leading-tight mt-0.5">
+              Run AI to auto-categorize →
+            </p>
+          </div>
+        </Link>
+      )}
+
       {/* Ctrl+K search trigger */}
       <div className="px-3 pt-3 pb-1">
         <button
@@ -200,7 +238,7 @@ export default function Nav() {
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700/40 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 hover:border-zinc-600/60 transition-all text-xs"
         >
           <Search size={12} className="shrink-0" />
-          <span className="flex-1 text-left">Search…</span>
+          <span className="flex-1 text-left">{t.searchPlaceholder}</span>
           <kbd className="flex items-center gap-0.5 text-[10px] text-zinc-600 font-mono">
             <Command size={9} />K
           </kbd>
@@ -246,7 +284,7 @@ export default function Nav() {
                 href="/categories"
                 onClick={(e) => e.stopPropagation()}
                 className="text-zinc-700 hover:text-zinc-400 transition-colors p-0.5 rounded"
-                title="Manage categories"
+                title={t.manageCategories}
               >
                 <Tag size={11} />
               </Link>
@@ -260,6 +298,21 @@ export default function Nav() {
           {collectionsOpen && (
             <>
               <div className="flex flex-col gap-px overflow-y-auto flex-1 min-h-0">
+                {/* Uncategorised entry — always shown when count > 0 */}
+                {uncategorizedCount > 0 && (
+                  <Link
+                    href="/bookmarks?uncategorized=true"
+                    className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-[13px] font-medium transition-all group ${
+                      pathname === '/bookmarks' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
+                    }`}
+                  >
+                    <Bookmark size={12} className="flex-shrink-0 text-zinc-600" />
+                    <span className="truncate flex-1">{t.uncategorized}</span>
+                    <span className="text-[11px] text-zinc-600 group-hover:text-zinc-500 tabular-nums font-normal">
+                      {uncategorizedCount}
+                    </span>
+                  </Link>
+                )}
                 {visibleCats.map((cat) => {
                   const catActive = pathname === `/categories/${cat.slug}`
                   return (
@@ -277,7 +330,7 @@ export default function Nav() {
                         className="flex-shrink-0 transition-colors"
                         style={{ color: cat.color, fill: cat.color }}
                       />
-                      <span className="truncate flex-1">{cat.name}</span>
+                      <span className="truncate flex-1">{t[CAT_TRANSLATION_KEYS[cat.slug]] ?? cat.name}</span>
                       <span className="text-[11px] text-zinc-600 group-hover:text-zinc-500 tabular-nums font-normal">
                         {cat.bookmarkCount}
                       </span>

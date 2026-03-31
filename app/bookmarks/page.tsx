@@ -1,20 +1,19 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Search,
   BookmarkX,
-  ChevronLeft,
-  ChevronRight,
   LayoutGrid,
   List,
   X,
   ChevronDown,
   ArrowUpDown,
+  Loader2,
 } from 'lucide-react'
 import * as Select from '@radix-ui/react-select'
-import BookmarkCard from '@/components/bookmark-card'
+import VirtualizedMasonryGrid from '@/components/VirtualizedMasonryGrid'
 import type { BookmarkWithMedia, BookmarksResponse } from '@/lib/types'
 
 const PAGE_SIZE = 24
@@ -127,75 +126,6 @@ function SkeletonCard() {
   )
 }
 
-function Pagination({
-  page,
-  total,
-  limit,
-  onChange,
-}: {
-  page: number
-  total: number
-  limit: number
-  onChange: (p: number) => void
-}) {
-  const totalPages = Math.ceil(total / limit)
-  if (totalPages <= 1) return null
-
-  const getPageNumbers = (): (number | 'ellipsis')[] => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1)
-    const pages: (number | 'ellipsis')[] = [1]
-    if (page > 3) pages.push('ellipsis')
-    const start = Math.max(2, page - 1)
-    const end = Math.min(totalPages - 1, page + 1)
-    for (let i = start; i <= end; i++) pages.push(i)
-    if (page < totalPages - 2) pages.push('ellipsis')
-    pages.push(totalPages)
-    return pages
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-1.5 mt-12">
-      <button
-        onClick={() => onChange(page - 1)}
-        disabled={page <= 1}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
-      >
-        <ChevronLeft size={14} />
-        Prev
-      </button>
-
-      <div className="flex items-center gap-1">
-        {getPageNumbers().map((p, i) =>
-          p === 'ellipsis' ? (
-            <span key={`ellipsis-${i}`} className="px-2 text-zinc-700 text-sm select-none">&hellip;</span>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onChange(p)}
-              className={`w-9 h-9 rounded-xl text-sm font-medium transition-all ${
-                p === page
-                  ? 'bg-indigo-600 text-white border border-indigo-500/50 shadow-lg shadow-indigo-500/20'
-                  : 'bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-zinc-100 hover:border-zinc-700 hover:bg-zinc-800'
-              }`}
-            >
-              {p}
-            </button>
-          )
-        )}
-      </div>
-
-      <button
-        onClick={() => onChange(page + 1)}
-        disabled={page >= totalPages}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
-      >
-        Next
-        <ChevronRight size={14} />
-      </button>
-    </div>
-  )
-}
-
 function BookmarksPageInner() {
   const searchParams = useSearchParams()
   const [filters, setFilters] = useState<Filters>(() => ({
@@ -209,44 +139,67 @@ function BookmarksPageInner() {
   const [bookmarks, setBookmarks] = useState<BookmarkWithMedia[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [loadingMore, setLoadingMore] = useState(false)
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const fetchBookmarks = useCallback(async (f: Filters) => {
-    setLoading(true)
-    try {
-      const res = await fetch(buildUrl(f))
-      if (!res.ok) throw new Error('Failed to fetch')
-      const data: BookmarksResponse = await res.json()
-      setBookmarks(data.bookmarks)
-      setTotal(data.total)
-    } catch (err) {
-      console.error(err)
-      setBookmarks([])
-      setTotal(0)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  // pageRef = source of truth for which page to fetch next
+  const pageRef = useRef(1)
+  const fetchingRef = useRef(false)
 
+  function doFetch(page: number, append: boolean) {
+    if (fetchingRef.current) return
+    fetchingRef.current = true
+    if (append) setLoadingMore(true)
+    else setLoading(true)
+
+    const f: Filters = { ...filters, page }
+    fetch(buildUrl(f))
+      .then((r) => { if (!r.ok) throw new Error('Failed to fetch'); return r.json() })
+      .then((data: BookmarksResponse) => {
+        setBookmarks((prev) => append ? [...prev, ...data.bookmarks] : data.bookmarks)
+        setTotal(data.total)
+      })
+      .catch((err) => {
+        console.error(err)
+        if (!append) { setBookmarks([]); setTotal(0) }
+      })
+      .finally(() => {
+        fetchingRef.current = false
+        if (append) setLoadingMore(false)
+        else setLoading(false)
+      })
+  }
+
+  // Initial load + filter changes
   useEffect(() => {
-    fetchBookmarks(filters)
-  }, [fetchBookmarks, filters])
+    pageRef.current = 1
+    doFetch(1, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.q, filters.category, filters.mediaType, filters.source, filters.sort, filters.uncategorized])
+
+  function handleLoadMore() {
+    if (fetchingRef.current) return
+    pageRef.current += 1
+    doFetch(pageRef.current, true)
+  }
 
   function updateSearch(q: string) {
     setSearchInput(q)
     if (searchRef.current) clearTimeout(searchRef.current)
     searchRef.current = setTimeout(() => {
+      pageRef.current = 1
       setFilters((prev) => ({ ...prev, q, page: 1 }))
     }, 300)
   }
 
   function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
+    pageRef.current = 1
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
   }
 
   function clearAllFilters() {
     setSearchInput('')
+    pageRef.current = 1
     setFilters(DEFAULT_FILTERS)
   }
 
@@ -323,27 +276,23 @@ function BookmarksPageInner() {
               <span className="hidden sm:inline">{sortLabel}</span>
             </button>
 
-            {/* View toggle */}
-            <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 rounded-xl p-1 shrink-0">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg transition-all ${
-                  viewMode === 'grid' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-600 hover:text-zinc-300'
-                }`}
-                aria-label="Masonry view"
-              >
-                <LayoutGrid size={14} />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-lg transition-all ${
-                  viewMode === 'list' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-600 hover:text-zinc-300'
-                }`}
-                aria-label="List view"
-              >
-                <List size={14} />
-              </button>
-            </div>
+            {/* View toggle — only shown when bookmarks are loaded */}
+            {!loading && bookmarks.length > 0 && (
+              <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 rounded-xl p-1 shrink-0">
+                <button
+                  className="p-1.5 rounded-lg transition-all bg-zinc-700 text-zinc-100"
+                  aria-label="Masonry view"
+                >
+                  <LayoutGrid size={14} />
+                </button>
+                <button
+                  className="p-1.5 rounded-lg transition-all text-zinc-600 hover:text-zinc-300"
+                  aria-label="List view"
+                >
+                  <List size={14} />
+                </button>
+              </div>
+            )}
 
           </div>
 
@@ -437,32 +386,23 @@ function BookmarksPageInner() {
           </div>
         )}
 
-        {/* Masonry grid */}
-        {!loading && bookmarks.length > 0 && viewMode === 'grid' && (
-          <div className="masonry-grid">
-            {bookmarks.map((bookmark) => (
-              <div key={bookmark.id} className="masonry-item">
-                <BookmarkCard bookmark={bookmark} />
-              </div>
-            ))}
-          </div>
+        {/* Virtualized masonry grid — Pretext-powered height estimation + windowed rendering */}
+        {!loading && bookmarks.length > 0 && (
+          <VirtualizedMasonryGrid
+            bookmarks={bookmarks}
+            total={total}
+            loadingMore={loadingMore}
+            hasMore={bookmarks.length < total}
+            onLoadMore={handleLoadMore}
+          />
         )}
 
-        {/* List view */}
-        {!loading && bookmarks.length > 0 && viewMode === 'list' && (
-          <div className="flex flex-col gap-3 max-w-3xl mx-auto">
-            {bookmarks.map((bookmark) => (
-              <BookmarkCard key={bookmark.id} bookmark={bookmark} />
-            ))}
-          </div>
+        {/* All loaded */}
+        {!loading && !loadingMore && bookmarks.length > 0 && bookmarks.length >= total && (
+          <p className="text-center text-xs text-zinc-700 py-8">
+            All {total.toLocaleString()} bookmark{total !== 1 ? 's' : ''} loaded
+          </p>
         )}
-
-        <Pagination
-          page={filters.page}
-          total={total}
-          limit={PAGE_SIZE}
-          onChange={(p) => setFilters((prev) => ({ ...prev, page: p }))}
-        />
       </div>
     </div>
   )
