@@ -120,6 +120,11 @@ export interface Translations {
   callbackUrl: string
   saveOAuthCredentials: string
 
+  // GitHub PAT
+  githubPat: string
+  githubPatDescription: string
+  githubPatHint: string
+
   // Bird CLI
   birdCli: string
   birdCliDescription: string
@@ -431,6 +436,11 @@ const en: Translations = {
   callbackUrl: 'Callback URL:',
   saveOAuthCredentials: 'Save X OAuth Credentials',
 
+  // GitHub PAT
+  githubPat: 'GitHub Personal Access Token',
+  githubPatDescription: 'Sync GitHub repos from your bookmarks.',
+  githubPatHint: 'Required to fetch repo metadata and README content. Requires repo scope.',
+
   // Bird CLI
   birdCli: 'X Bookmark CLI Import',
   birdCliDescription: 'Use the bird CLI to fetch bookmarks directly. No X Premium needed.',
@@ -739,6 +749,11 @@ const zh: Translations = {
   xDeveloperPortal: 'X 开发者门户',
   callbackUrl: '回调 URL：',
   saveOAuthCredentials: '保存 X OAuth 凭据',
+
+  // GitHub PAT
+  githubPat: 'GitHub 个人访问令牌',
+  githubPatDescription: '从书签中同步 GitHub 仓库。',
+  githubPatHint: '用于获取仓库元数据和 README 内容。需要 repo 权限。',
 
   // Bird CLI
   birdCli: 'X 书签 CLI 导入',

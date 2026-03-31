@@ -24,7 +24,7 @@ const ALLOWED_OPENAI_MODELS = [
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const [anthropic, anthropicModel, provider, openai, openaiModel, xClientId, xClientSecret, xBirdAuthToken, xBirdCt0] = await Promise.all([
+    const [anthropic, anthropicModel, provider, openai, openaiModel, xClientId, xClientSecret, xBirdAuthToken, xBirdCt0, githubPat] = await Promise.all([
       prisma.setting.findUnique({ where: { key: 'anthropicApiKey' } }),
       prisma.setting.findUnique({ where: { key: 'anthropicModel' } }),
       prisma.setting.findUnique({ where: { key: 'aiProvider' } }),
@@ -34,6 +34,7 @@ export async function GET(): Promise<NextResponse> {
       prisma.setting.findUnique({ where: { key: 'x_oauth_client_secret' } }),
       prisma.setting.findUnique({ where: { key: 'x_bird_auth_token' } }),
       prisma.setting.findUnique({ where: { key: 'x_bird_ct0' } }),
+      prisma.setting.findUnique({ where: { key: 'github_personal_access_token' } }),
     ])
 
     return NextResponse.json({
@@ -48,6 +49,8 @@ export async function GET(): Promise<NextResponse> {
       xOAuthClientSecret: maskKey(xClientSecret?.value ?? null),
       hasXOAuth: !!xClientId?.value,
       hasBirdCredentials: !!xBirdAuthToken?.value && !!xBirdCt0?.value,
+      githubPersonalAccessToken: maskKey(githubPat?.value ?? null),
+      hasGithubToken: !!githubPat?.value,
     })
   } catch (err) {
     console.error('Settings GET error:', err)
@@ -69,6 +72,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     xOAuthClientSecret?: string
     xBirdAuthToken?: string
     xBirdCt0?: string
+    githubPersonalAccessToken?: string
   } = {}
   try {
     body = await request.json()
@@ -218,6 +222,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
   }
 
+  // Save GitHub PAT if provided
+  const { githubPersonalAccessToken } = body
+  if (githubPersonalAccessToken !== undefined) {
+    if (typeof githubPersonalAccessToken !== 'string' || githubPersonalAccessToken.trim() === '') {
+      return NextResponse.json({ error: 'Invalid githubPersonalAccessToken value' }, { status: 400 })
+    }
+    const trimmed = githubPersonalAccessToken.trim()
+    try {
+      await prisma.setting.upsert({
+        where: { key: 'github_personal_access_token' },
+        update: { value: trimmed },
+        create: { key: 'github_personal_access_token', value: trimmed },
+      })
+      return NextResponse.json({ saved: true })
+    } catch (err) {
+      console.error('Settings POST (GitHub PAT) error:', err)
+      return NextResponse.json(
+        { error: `Failed to save: ${err instanceof Error ? err.message : String(err)}` },
+        { status: 500 },
+      )
+    }
+  }
+
   return NextResponse.json({ error: 'No setting provided' }, { status: 400 })
 }
 
@@ -229,7 +256,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const allowed = ['anthropicApiKey', 'openaiApiKey', 'x_oauth_client_id', 'x_oauth_client_secret', 'x_bird_auth_token', 'x_bird_ct0']
+  const allowed = ['anthropicApiKey', 'openaiApiKey', 'x_oauth_client_id', 'x_oauth_client_secret', 'x_bird_auth_token', 'x_bird_ct0', 'github_personal_access_token']
   if (!body.key || !allowed.includes(body.key)) {
     return NextResponse.json({ error: 'Invalid key' }, { status: 400 })
   }

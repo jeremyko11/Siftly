@@ -23,6 +23,7 @@ import {
   Globe,
   Sun,
   Moon,
+  Github,
 } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
 import { type Language } from '@/lib/i18n'
@@ -1127,6 +1128,142 @@ function BirdCliSection({ onToast, t }: { onToast: (t: Toast) => void; t: Return
   )
 }
 
+function GithubPatSection({ onToast, t }: { onToast: (t: Toast) => void; t: ReturnType<typeof useI18n>['t'] }) {
+  const [pat, setPat] = useState('')
+  const [showPat, setShowPat] = useState(false)
+  const [savedPat, setSavedPat] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [removing, setRemoving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((d: Record<string, unknown>) => {
+        if (d.hasGithubToken && d.githubPersonalAccessToken) {
+          setSavedPat((d.githubPersonalAccessToken as string).slice(0, 6) + '••••••••' + (d.githubPersonalAccessToken as string).slice(-4))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  async function handleSave() {
+    if (!pat.trim()) {
+      onToast({ type: 'error', message: `${t.githubPat} ${t.error}` })
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ githubPersonalAccessToken: pat.trim() }),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      setSavedPat(pat.trim().slice(0, 6) + '••••••••' + pat.trim().slice(-4))
+      setPat('')
+      onToast({ type: 'success', message: `${t.githubPat} ${t.saved}` })
+    } catch (err) {
+      onToast({ type: 'error', message: err instanceof Error ? err.message : t.error })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleRemove() {
+    setRemoving(true)
+    try {
+      await fetch('/api/settings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'github_personal_access_token' }),
+      })
+      setSavedPat(null)
+      onToast({ type: 'success', message: `${t.githubPat} ${t.remove}` })
+    } catch (err) {
+      onToast({ type: 'error', message: err instanceof Error ? err.message : t.error })
+    } finally {
+      setRemoving(false)
+    }
+  }
+
+  return (
+    <Section
+      icon={Github}
+      title={t.githubPat}
+      description={t.githubPatDescription}
+    >
+      <div className="space-y-4">
+        {savedPat ? (
+          <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
+            <div className="flex items-center gap-2.5">
+              <Check size={15} className="text-emerald-400 shrink-0" />
+              <span className="text-sm text-zinc-400 font-mono text-xs">{savedPat}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://github.com/settings/tokens/new?scopes=repo&description=Siftly"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                {t.getKey} <ExternalLink size={10} />
+              </a>
+              <button
+                onClick={() => void handleRemove()}
+                disabled={removing}
+                className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                title={t.remove}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex gap-2.5">
+              <div className="relative flex-1">
+                <input
+                  type={showPat ? 'text' : 'password'}
+                  value={pat}
+                  onChange={(e) => setPat(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && void handleSave()}
+                  placeholder="ghp_..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder:text-zinc-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-200 pr-10 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPat((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  {showPat ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              <button
+                onClick={() => void handleSave()}
+                disabled={saving || !pat.trim()}
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors shrink-0"
+              >
+                {saving ? t.saving : t.save}
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-zinc-600">{t.githubPatHint}</p>
+              <a
+                href="https://github.com/settings/tokens/new?scopes=repo&description=Siftly"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-400 transition-colors"
+              >
+                {t.getKey} <ExternalLink size={11} />
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    </Section>
+  )
+}
+
 export default function SettingsPage() {
   const [toast, setToast] = useState<Toast | null>(null)
   const { t, language, setLanguage } = useI18n()
@@ -1209,6 +1346,7 @@ export default function SettingsPage() {
         <ApiKeySection onToast={showToast} t={t} />
         <XOAuthSection onToast={showToast} t={t} />
         <BirdCliSection onToast={showToast} t={t} />
+        <GithubPatSection onToast={showToast} t={t} />
         <DataSection t={t} />
         <DangerZoneSection onToast={showToast} t={t} />
         <AboutSection t={t} />
