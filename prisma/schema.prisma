@@ -23,6 +23,7 @@ model Bookmark {
   source          String    @default("bookmark")  // "bookmark" | "like"
   mediaItems    MediaItem[]
   categories    BookmarkCategory[]
+  bookmarkRepos BookmarkRepo[]
 
   @@index([authorHandle])
   @@index([tweetCreatedAt])
@@ -79,4 +80,38 @@ model ImportJob {
 model Setting {
   key   String @id
   value String
+}
+
+model Repo {
+  id              String   @id @default(cuid())
+  owner           String
+  name            String
+  fullName        String   @unique
+  description     String?
+  url             String
+  stars           Int      @default(0)
+  language        String?
+  topics          String   @default("[]")   // JSON array
+  readmeContent   String?                    // Raw README (truncated to 50k chars)
+  features        String?                    // AI-extracted JSON
+  useCases        String?                    // AI-extracted JSON
+  techStack       String?                    // AI-extracted JSON array
+  summary         String?                    // AI-generated 1-2 sentence summary
+  readmeAnalyzedAt DateTime?
+  importedAt      DateTime @default(now())
+  bookmarkRepos   BookmarkRepo[]
+
+  @@index([fullName])
+  @@index([owner])
+  @@index([stars])
+}
+
+model BookmarkRepo {
+  bookmarkId  String
+  repoId     String
+  bookmark   Bookmark @relation(fields: [bookmarkId], references: [id], onDelete: Cascade)
+  repo       Repo    @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@id([bookmarkId, repoId])
+  @@index([repoId])
 }

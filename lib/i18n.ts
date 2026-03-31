@@ -6,6 +6,7 @@ export type Language = 'en' | 'zh'
 export interface Translations {
   // Nav
   dashboard: string
+  githubRepos: string
   aiSearch: string
   browse: string
   mindmap: string
@@ -328,6 +329,7 @@ export interface Translations {
 
 const en: Translations = {
   dashboard: 'Dashboard',
+  githubRepos: 'GitHub Repos',
   aiSearch: 'AI Search',
   browse: 'Browse',
   mindmap: 'Mindmap',
@@ -636,6 +638,7 @@ const en: Translations = {
 
 const zh: Translations = {
   dashboard: '仪表盘',
+  githubRepos: 'GitHub 仓库',
   aiSearch: 'AI 搜索',
   browse: '浏览',
   mindmap: '思维导图',

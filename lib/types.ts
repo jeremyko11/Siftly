@@ -54,3 +54,40 @@ export interface BookmarksResponse {
   page: number
   limit: number
 }
+
+// ── GitHub Repos ──────────────────────────────────────────────────────────────
+
+export interface Repo {
+  id: string
+  owner: string
+  name: string
+  fullName: string
+  description: string | null
+  url: string
+  stars: number
+  language: string | null
+  topics: string[]
+  readmeContent: string | null
+  features: RepoFeature[] | null
+  useCases: RepoUseCase[] | null
+  techStack: string[] | null
+  summary: string | null
+  readmeAnalyzedAt: string | null
+  importedAt: string
+}
+
+export interface RepoFeature {
+  title: string
+  description: string
+}
+
+export interface RepoUseCase {
+  scenario: string
+  description: string
+}
+
+export interface ReposResponse {
+  repos: Repo[]
+  total: number
+  analyzedCount: number
+}

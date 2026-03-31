@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Command,
   Bookmark,
+  Github,
 } from 'lucide-react'
 
 interface NavItem {
@@ -29,6 +30,7 @@ function getNavItems(t: ReturnType<typeof useI18n>['t']): NavItem[] {
     { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
     { href: '/ai-search', labelKey: 'aiSearch', icon: Sparkles },
     { href: '/bookmarks', labelKey: 'browse', icon: Search },
+    { href: '/repos', labelKey: 'githubRepos', icon: Github },
     { href: '/mindmap', labelKey: 'mindmap', icon: GitBranch },
     { href: '/import', labelKey: 'import', icon: Upload },
     { href: '/settings', labelKey: 'settings', icon: Settings },
