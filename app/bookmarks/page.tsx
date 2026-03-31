@@ -147,7 +147,7 @@ function BookmarksPageInner() {
   const fetchingRef = useRef(false)
 
   function doFetch(page: number, append: boolean) {
-    if (fetchingRef.current) return
+    if (fetchingRef.current) return false
     fetchingRef.current = true
     if (append) setLoadingMore(true)
     else setLoading(true)
@@ -157,7 +157,9 @@ function BookmarksPageInner() {
       .then((r) => { if (!r.ok) throw new Error('Failed to fetch'); return r.json() })
       .then((data: BookmarksResponse) => {
         setBookmarks((prev) => append ? [...prev, ...data.bookmarks] : data.bookmarks)
-        setTotal(data.total)
+        // Defensive: if API returns 0 total but we got items, use item count as total
+        const safeTotal = data.total > 0 ? data.total : data.bookmarks.length
+        setTotal(safeTotal)
       })
       .catch((err) => {
         console.error(err)
@@ -168,6 +170,7 @@ function BookmarksPageInner() {
         if (append) setLoadingMore(false)
         else setLoading(false)
       })
+    return true
   }
 
   // Initial load + filter changes
@@ -179,8 +182,9 @@ function BookmarksPageInner() {
 
   function handleLoadMore() {
     if (fetchingRef.current) return
-    pageRef.current += 1
-    doFetch(pageRef.current, true)
+    const nextPage = pageRef.current + 1
+    pageRef.current = nextPage
+    doFetch(nextPage, true)
   }
 
   function updateSearch(q: string) {

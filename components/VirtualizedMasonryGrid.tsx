@@ -150,31 +150,27 @@ export default function VirtualizedMasonryGrid({
 
   // Scroll handler — reads hasMore from ref, not closure, so it's always fresh
   useEffect(() => {
+    let ticking = false
+
     function onScroll() {
-      if (rafRef.current) return
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        ticking = false
         setScrollY(window.scrollY)
 
         // Always read latest hasMore / onLoadMore from refs — no stale closure
         const docH = document.documentElement.scrollHeight
         const remaining = docH - window.scrollY - window.innerHeight
-        if (remaining < 600 && hasMoreRef.current && !fetchingRef.current) {
+        if (remaining < 800 && hasMoreRef.current && !fetchingRef.current) {
           fetchingRef.current = true
           onLoadMoreRef.current()
-        }
-
-        // Safety fallback: if we've scrolled to the bottom and still have more,
-        // but fetching never triggered (stale closure edge case), force a reset
-        if (remaining < 200 && hasMoreRef.current && fetchingRef.current) {
-          fetchingRef.current = false
         }
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', onScroll)
-      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
     }
   }, [])
 
