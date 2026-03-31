@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from 'react'
 import { Github, RefreshCw, Search, ArrowUpDown, AlertCircle } from 'lucide-react'
 import RepoCard from '@/components/RepoCard'
 import type { Repo, ReposResponse } from '@/lib/types'
+import { useI18n } from '@/lib/i18n-context'
 
 const REPO_GRID_CLASS = 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6'
 
 export default function ReposPage() {
+  const { t } = useI18n()
   const [repos, setRepos] = useState<Repo[]>([])
   const [total, setTotal] = useState(0)
   const [analyzedCount, setAnalyzedCount] = useState(0)
@@ -86,11 +88,11 @@ export default function ReposPage() {
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center gap-2">
               <Github size={18} className="text-zinc-300" />
-              <h1 className="text-lg font-semibold text-zinc-100">GitHub Repos</h1>
+              <h1 className="text-lg font-semibold text-zinc-100">{t.githubRepos}</h1>
               {total > 0 && (
                 <span className="text-xs text-zinc-600">
-                  {total.toLocaleString()} synced
-                  {analyzedCount > 0 && <span className="text-indigo-400 ml-1">· {analyzedCount} analyzed</span>}
+                  {total.toLocaleString()} {t.reposSynced}
+                  {analyzedCount > 0 && <span className="text-indigo-400 ml-1">· {analyzedCount} {t.reposAnalyzed}</span>}
                 </span>
               )}
             </div>
@@ -100,7 +102,7 @@ export default function ReposPage() {
               className="flex items-center gap-1.5 ml-auto px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
             >
               <RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />
-              {syncing ? 'Syncing…' : 'Sync Repos'}
+              {syncing ? t.syncing : t.syncRepos}
             </button>
           </div>
 
@@ -110,7 +112,7 @@ export default function ReposPage() {
               <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search repos by name or description…"
+                placeholder={t.searchReposPlaceholder}
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="w-full pl-8 pr-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 text-sm focus:outline-none focus:border-indigo-500/60 transition-all"
@@ -121,7 +123,7 @@ export default function ReposPage() {
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs hover:border-zinc-700 hover:text-zinc-200 transition-all"
             >
               <ArrowUpDown size={11} />
-              {sort === 'stars' ? 'Stars' : sort === 'name' ? 'Name' : 'Recent'}
+              {sort === 'stars' ? t.sortByStars : sort === 'name' ? t.sortByName : t.sortByRecent}
             </button>
           </div>
         </div>
@@ -134,11 +136,9 @@ export default function ReposPage() {
           <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
             <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-amber-300">GitHub token not configured</p>
+              <p className="text-sm font-medium text-amber-300">{t.githubTokenNotConfigured}</p>
               <p className="text-xs text-amber-500/80 mt-0.5">
-                Add a GitHub Personal Access Token in{' '}
-                <a href="/settings" className="underline hover:text-amber-300">Settings</a>{' '}
-                to enable repo syncing. Requires <code className="text-[10px] bg-amber-500/20 px-1 py-0.5 rounded">repo</code> scope.
+                {t.githubTokenNotConfiguredDesc}
               </p>
             </div>
           </div>
@@ -167,9 +167,9 @@ export default function ReposPage() {
             <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5">
               <Github size={26} className="text-zinc-700" />
             </div>
-            <h3 className="text-base font-semibold text-zinc-400 mb-2">No repos synced yet</h3>
+            <h3 className="text-base font-semibold text-zinc-400 mb-2">{t.noReposSyncedYet}</h3>
             <p className="text-zinc-600 text-sm mb-6 max-w-xs">
-              Click "Sync Repos" to extract all GitHub links from your bookmarks and fetch metadata.
+              {t.clickSyncReposEmpty}
             </p>
             <button
               onClick={handleSync}
@@ -177,7 +177,7 @@ export default function ReposPage() {
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl transition-colors"
             >
               <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
-              {syncing ? 'Syncing…' : 'Sync Repos'}
+              {syncing ? t.syncing : t.syncRepos}
             </button>
           </div>
         )}

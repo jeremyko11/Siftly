@@ -64,7 +64,7 @@ function SponsorFooter() {
         <div className="w-7 h-7 rounded-full bg-zinc-700/50 border border-zinc-600/30 shrink-0" />
         <div className="flex flex-col min-w-0">
           <span className="text-[11px] font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors leading-tight">{t.supportDevelopment}</span>
-          <span className="text-[10px] text-zinc-600 leading-tight mt-1">DM @viperr on X</span>
+          <span className="text-[10px] text-zinc-600 leading-tight mt-1">{t.dmOnX}</span>
         </div>
       </a>
     </div>
@@ -227,7 +227,7 @@ export default function Nav() {
               {uncategorizedCount} {t.uncategorized} bookmarks
             </p>
             <p className="text-[10px] text-amber-500/70 leading-tight mt-0.5">
-              Run AI to auto-categorize →
+              {t.runAiAutoCategorize}
             </p>
           </div>
         </Link>

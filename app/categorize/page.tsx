@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Sparkles, Loader2, CheckCircle, ChevronRight, Eye, Tag, Brain, Layers, StopCircle } from 'lucide-react'
 import * as Progress from '@radix-ui/react-progress'
+import { useI18n } from '@/lib/i18n-context'
 
 type Stage = 'vision' | 'entities' | 'enrichment' | 'categorize' | 'parallel' | null
 
@@ -53,6 +54,7 @@ const STAGE_INFO: Record<NonNullable<Stage>, { label: string; icon: React.ReactN
 }
 
 export default function CategorizePage() {
+  const { t } = useI18n()
   const [status, setStatus] = useState<CategorizeStatus | null>(null)
   const [running, setRunning] = useState(false)
   const [stopping, setStopping] = useState(false)
@@ -193,10 +195,10 @@ export default function CategorizePage() {
             {status?.stageCounts && (
               <div className="space-y-1.5">
                 {[
-                  { key: 'visionTagged', label: 'images analyzed', icon: <Eye size={13} />, active: status.stage === 'vision' || status.stage === 'parallel' },
-                  { key: 'entitiesExtracted', label: 'entities extracted', icon: <Tag size={13} />, active: status.stage === 'entities' },
-                  { key: 'enriched', label: 'bookmarks enriched', icon: <Brain size={13} />, active: status.stage === 'enrichment' || status.stage === 'parallel' },
-                  { key: 'categorized', label: 'categorized', icon: <Layers size={13} />, active: status.stage === 'categorize' || status.stage === 'parallel' },
+                  { key: 'visionTagged', label: t.imagesAnalyzedLabel, icon: <Eye size={13} />, active: status.stage === 'vision' || status.stage === 'parallel' },
+                  { key: 'entitiesExtracted', label: t.entitiesExtracted, icon: <Tag size={13} />, active: status.stage === 'entities' },
+                  { key: 'enriched', label: t.bookmarksEnrichedLabel, icon: <Brain size={13} />, active: status.stage === 'enrichment' || status.stage === 'parallel' },
+                  { key: 'categorized', label: t.categorizedLabel, icon: <Layers size={13} />, active: status.stage === 'categorize' || status.stage === 'parallel' },
                 ].map(({ key, label, icon, active }) => {
                   const count = status.stageCounts[key as keyof StageCounts]
                   const total = key === 'categorized' ? status.total : null
@@ -239,7 +241,7 @@ export default function CategorizePage() {
             {(status?.stage === 'categorize' || status?.stage === 'parallel') && (
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-zinc-500">
-                  <span>{status.done} / {status.total} bookmarks</span>
+                  <span>{status.done} / {status.total} {t.bookmarksOfTotal}</span>
                   <span>{progress}%</span>
                 </div>
                 <Progress.Root className="relative h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
@@ -278,7 +280,7 @@ export default function CategorizePage() {
                 href="/bookmarks"
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-colors"
               >
-                View bookmarks <ChevronRight size={14} />
+                {t.viewBookmarks} <ChevronRight size={14} />
               </Link>
               <button
                 onClick={() => { setDone(false); setStatus(null) }}

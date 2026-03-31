@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { ExternalLink, Star, GitFork, Sparkles, RotateCw, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Repo } from '@/lib/types'
+import { useI18n } from '@/lib/i18n-context'
 
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: '#3178c6',
@@ -34,6 +35,7 @@ interface RepoCardProps {
 }
 
 export default function RepoCard({ repo }: RepoCardProps) {
+  const { t } = useI18n()
   const [expanded, setExpanded] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
 
@@ -134,7 +136,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
         {/* Features (if analyzed) */}
         {isAnalyzed && repo.features && repo.features.length > 0 && (
           <div className="mb-3">
-            <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold mb-1.5">Features</p>
+            <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold mb-1.5">{t.features}</p>
             <ul className="space-y-1">
               {repo.features.slice(0, expanded ? undefined : 3).map((f, i) => (
                 <li key={i} className="flex items-start gap-1.5">
@@ -152,7 +154,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
                 className="flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-300 mt-1.5 transition-colors"
               >
                 {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-                {expanded ? 'Show less' : `+${repo.features.length - 3} more`}
+                {expanded ? t.showLess : `+${repo.features.length - 3} ${t.moreFeatures}`}
               </button>
             )}
           </div>
@@ -161,7 +163,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
         {/* Use cases (if analyzed) */}
         {isAnalyzed && repo.useCases && repo.useCases.length > 0 && (
           <div className="mb-3">
-            <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold mb-1.5">Use Cases</p>
+            <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold mb-1.5">{t.useCases}</p>
             <ul className="space-y-1">
               {repo.useCases.map((uc, i) => (
                 <li key={i} className="flex items-start gap-1.5">
@@ -179,10 +181,10 @@ export default function RepoCard({ repo }: RepoCardProps) {
         {/* Tech stack (if analyzed) */}
         {isAnalyzed && repo.techStack && repo.techStack.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap mb-2">
-            <span className="text-[10px] text-zinc-600">Stack:</span>
-            {repo.techStack.map((t) => (
-              <span key={t} className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
-                {t}
+            <span className="text-[10px] text-zinc-600">{t.techStack}</span>
+            {repo.techStack.map((stackItem) => (
+              <span key={stackItem} className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
+                {stackItem}
               </span>
             ))}
           </div>
@@ -200,7 +202,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
           <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
             <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
           </svg>
-          View on GitHub
+          {t.viewOnGithub}
         </a>
 
         {isAnalyzed && (
@@ -208,17 +210,17 @@ export default function RepoCard({ repo }: RepoCardProps) {
             onClick={handleReanalyze}
             disabled={analyzing}
             className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-50"
-            title="Re-analyze with AI"
+            title={t.reanalyze}
           >
             <RotateCw size={10} className={analyzing ? 'animate-spin' : ''} />
-            {analyzing ? 'Analyzing…' : 'Re-analyze'}
+            {analyzing ? t.analyzing : t.reanalyze}
           </button>
         )}
 
         {!isAnalyzed && (
           <span className="flex items-center gap-1 text-[10px] text-zinc-600 ml-auto">
             <Sparkles size={10} className="text-indigo-400" />
-            Pending AI analysis
+            {t.pendingAiAnalysis}
           </span>
         )}
       </div>

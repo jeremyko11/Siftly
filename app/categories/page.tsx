@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Tag, X, ArrowRight, Folder, Bookmark } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import Link from 'next/link'
+import { useI18n } from '@/lib/i18n-context'
 import type { Category } from '@/lib/types'
 
 const PRESET_COLORS = [
@@ -24,6 +25,7 @@ interface AddCategoryModalProps {
 }
 
 function AddCategoryModal({ open, onClose, onAdd }: AddCategoryModalProps) {
+  const { t } = useI18n()
   const [name, setName] = useState('')
   const [color, setColor] = useState(PRESET_COLORS[0])
   const [description, setDescription] = useState('')
@@ -71,9 +73,9 @@ function AddCategoryModal({ open, onClose, onAdd }: AddCategoryModalProps) {
         <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl shadow-black/50 focus:outline-none animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <Dialog.Title className="text-lg font-semibold text-zinc-100">New Category</Dialog.Title>
+              <Dialog.Title className="text-lg font-semibold text-zinc-100">{t.newCategory}</Dialog.Title>
               <Dialog.Description className="text-sm text-zinc-500 mt-0.5">
-                Create a category to organize your bookmarks
+                {t.createFirstCategory}
               </Dialog.Description>
             </div>
             <button
@@ -87,7 +89,7 @@ function AddCategoryModal({ open, onClose, onAdd }: AddCategoryModalProps) {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-1.5">
-                Name <span className="text-red-400">*</span>
+                {t.categoryName} <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
@@ -100,7 +102,7 @@ function AddCategoryModal({ open, onClose, onAdd }: AddCategoryModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Color</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">{t.color}</label>
               <div className="flex gap-2.5 flex-wrap">
                 {PRESET_COLORS.map((c) => (
                   <button
@@ -150,14 +152,14 @@ function AddCategoryModal({ open, onClose, onAdd }: AddCategoryModalProps) {
                 onClick={handleClose}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium text-zinc-400 bg-zinc-800 hover:bg-zinc-700 transition-colors border border-zinc-700"
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {loading ? 'Creating...' : 'Create Category'}
+                {loading ? t.saving : t.addCategory}
               </button>
             </div>
           </form>
@@ -169,9 +171,10 @@ function AddCategoryModal({ open, onClose, onAdd }: AddCategoryModalProps) {
 
 interface CategoryDisplayCardProps {
   category: Category
+  t: ReturnType<typeof useI18n>['t']
 }
 
-function CategoryDisplayCard({ category }: CategoryDisplayCardProps) {
+function CategoryDisplayCard({ category, t }: CategoryDisplayCardProps) {
   return (
     <div
       className="bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-all duration-200 overflow-hidden group"
@@ -204,7 +207,7 @@ function CategoryDisplayCard({ category }: CategoryDisplayCardProps) {
             href={`/categories/${category.slug}`}
             className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-indigo-400 transition-colors group-hover:text-zinc-400 font-medium"
           >
-            View bookmarks
+            {t.viewBookmarks}
             <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
@@ -230,6 +233,7 @@ function SkeletonCard() {
 }
 
 export default function CategoriesPage() {
+  const { t } = useI18n()
   const [categories, setCategories] = useState<Category[]>([])
   const [totalBookmarks, setTotalBookmarks] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -269,10 +273,10 @@ export default function CategoriesPage() {
           </div>
           <p className="text-zinc-400 mt-1 text-sm">
             {loading
-              ? 'Loading your categories...'
+              ? t.loadingYourCategories
               : categories.length > 0
-              ? `${totalBookmarks.toLocaleString()} bookmarks across ${categories.length} categories`
-              : 'Organize your bookmarks by topic'}
+              ? `${totalBookmarks.toLocaleString()} ${t.bookmarksAcrossXCategories} ${categories.length} ${t.categories}`
+              : t.organizeByTopic}
           </p>
         </div>
         <button
@@ -280,7 +284,7 @@ export default function CategoriesPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors shadow-lg shadow-indigo-500/20"
         >
           <Plus size={16} />
-          Add Category
+          {t.addCategory}
         </button>
       </div>
 
@@ -299,16 +303,16 @@ export default function CategoriesPage() {
           <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5">
             <Folder size={28} className="text-zinc-700" />
           </div>
-          <h3 className="text-lg font-semibold text-zinc-300 mb-2">No categories yet</h3>
+          <h3 className="text-lg font-semibold text-zinc-300 mb-2">{t.noCategoriesYet}</h3>
           <p className="text-zinc-500 text-sm mb-6 max-w-xs leading-relaxed">
-            Create your first category to start organizing your bookmarks by topic.
+            {t.createFirstCategory}
           </p>
           <button
             onClick={() => setModalOpen(true)}
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-colors"
           >
             <Plus size={15} />
-            Create first category
+            {t.createFirstCategoryBtn}
           </button>
         </div>
       )}
@@ -317,7 +321,7 @@ export default function CategoriesPage() {
       {!loading && categories.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map((cat) => (
-            <CategoryDisplayCard key={cat.id} category={cat} />
+            <CategoryDisplayCard key={cat.id} category={cat} t={t} />
           ))}
         </div>
       )}
@@ -327,11 +331,11 @@ export default function CategoriesPage() {
         <div className="mt-8 flex items-center gap-3 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
           <Tag size={15} className="text-indigo-400 shrink-0" />
           <p className="text-sm text-zinc-500">
-            Tip: Use{' '}
+            {t.tipUse}
             <Link href="/categorize" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-              AI Categorize
+              {t.aiCategorize}
             </Link>{' '}
-            to automatically assign bookmarks to your categories.
+            {t.autoAssignBookmarks}
           </p>
         </div>
       )}

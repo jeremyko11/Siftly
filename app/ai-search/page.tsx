@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Sparkles, Search, Loader2, BookMarked, AlertCircle, ImageIcon } from 'lucide-react'
 import BookmarkCard from '@/components/bookmark-card'
 import type { BookmarkWithMedia } from '@/lib/types'
+import { useI18n } from '@/lib/i18n-context'
 
 // Extends BookmarkWithMedia with AI-specific fields returned by the search API
 interface AIBookmark extends BookmarkWithMedia {
@@ -26,6 +27,7 @@ interface ImageStats {
 }
 
 export default function AISearchPage() {
+  const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<AIBookmark[]>([])
   const [explanation, setExplanation] = useState('')
@@ -127,13 +129,13 @@ export default function AISearchPage() {
       {/* Header */}
       <div className="mb-6 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium mb-4">
-          <Sparkles size={12} /> AI-Powered Search
+          <Sparkles size={12} /> {t.aiPoweredSearch}
         </div>
         <h1 className="text-3xl font-bold text-zinc-100 mb-2">
-          Find anything in your bookmarks
+          {t.findAnything}
         </h1>
         <p className="text-zinc-500 text-sm">
-          Describe what you&apos;re looking for below.
+          {t.aiSearchSubtitle}
         </p>
       </div>
 
@@ -222,7 +224,7 @@ export default function AISearchPage() {
       {searched && !loading && results.length === 0 && !error && (
         <div className="text-center py-16 text-zinc-600">
           <BookMarked size={36} className="mx-auto mb-3 opacity-30" />
-          <p>No bookmarks matched that description. Try different words.</p>
+          <p>{t.noBookmarksMatchedDescription}</p>
         </div>
       )}
 

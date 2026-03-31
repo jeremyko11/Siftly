@@ -15,6 +15,7 @@ import {
 import * as Select from '@radix-ui/react-select'
 import MasonryGrid from '@/components/MasonryGrid'
 import type { BookmarkWithMedia, BookmarksResponse } from '@/lib/types'
+import { useI18n } from '@/lib/i18n-context'
 
 const PAGE_SIZE = 24
 
@@ -127,6 +128,7 @@ function SkeletonCard() {
 }
 
 function BookmarksPageInner() {
+  const { t } = useI18n()
   const searchParams = useSearchParams()
   const [filters, setFilters] = useState<Filters>(() => ({
     ...DEFAULT_FILTERS,
@@ -208,23 +210,23 @@ function BookmarksPageInner() {
   }
 
   const mediaOptions = [
-    { label: 'Photos', value: 'photo' },
-    { label: 'Videos', value: 'video' },
+    { label: t.photos, value: 'photo' },
+    { label: t.videos, value: 'video' },
   ]
 
   const sourceOptions = [
-    { label: 'Bookmarks', value: 'bookmark' },
-    { label: 'Likes', value: 'like' },
+    { label: t.bookmarks, value: 'bookmark' },
+    { label: t.likes, value: 'like' },
   ]
 
   const sortOptions = [
-    { label: 'Newest first', value: 'newest' },
-    { label: 'Oldest first', value: 'oldest' },
+    { label: t.newestFirst, value: 'newest' },
+    { label: t.oldestFirst, value: 'oldest' },
   ]
 
   const hasActiveFilters = !!(filters.q || filters.category || filters.mediaType || filters.source || filters.sort !== 'newest' || filters.uncategorized)
 
-  const sortLabel = sortOptions.find((o) => o.value === filters.sort)?.label ?? 'Newest first'
+  const sortLabel = sortOptions.find((o) => o.value === filters.sort)?.label ?? t.newestFirst
 
   return (
     <div className="flex flex-col h-full">
@@ -239,7 +241,7 @@ function BookmarksPageInner() {
               <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search bookmarks..."
+                placeholder={t.searchBookmarksPlaceholder}
                 value={searchInput}
                 onChange={(e) => updateSearch(e.target.value)}
                 className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 text-sm focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
@@ -259,7 +261,7 @@ function BookmarksPageInner() {
               value={filters.mediaType}
               onChange={(v) => updateFilter('mediaType', v)}
               options={mediaOptions}
-              placeholder="All media"
+              placeholder={t.allMedia}
             />
 
             {/* Source */}
@@ -305,7 +307,7 @@ function BookmarksPageInner() {
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               {filters.uncategorized && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium">
-                  Uncategorized
+                  {t.uncategorized}
                   <button onClick={() => updateFilter('uncategorized', false)} className="text-amber-400 hover:text-amber-200 transition-colors"><X size={10} /></button>
                 </span>
               )}

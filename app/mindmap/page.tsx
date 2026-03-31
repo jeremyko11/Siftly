@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Loader2, Bookmark, Sparkles, CheckCircle } from 'lucide-react'
 import type { Node, Edge } from '@xyflow/react'
 import dynamic from 'next/dynamic'
+import { useI18n } from '@/lib/i18n-context'
 
 const MindmapCanvas = dynamic(
   () => import('@/components/mindmap/mindmap-canvas'),
@@ -74,7 +75,16 @@ const STAGE_LABELS: Record<NonNullable<CategorizeStage>, string> = {
   parallel: 'Processing bookmarks in parallel…',
 }
 
+const STAGE_I18N_KEYS: Record<NonNullable<CategorizeStage>, keyof ReturnType<typeof useI18n>['t']> = {
+  vision: 'analyzingImages',
+  entities: 'extractingEntities',
+  enrichment: 'generatingTags',
+  categorize: 'categorizing',
+  parallel: 'processingInParallel',
+}
+
 function UncategorizedState({ totalBookmarks }: { totalBookmarks: number }) {
+  const { t } = useI18n()
   const [running, setRunning] = useState(false)
   const [done, setDone] = useState(false)
   const [status, setStatus] = useState<CategorizeStatus | null>(null)
@@ -135,14 +145,14 @@ function UncategorizedState({ totalBookmarks }: { totalBookmarks: number }) {
     ? Math.round((status.done / status.total) * 100)
     : null
 
-  const stageLabel = status?.stage ? STAGE_LABELS[status.stage] : 'Starting…'
+  const stageLabel = status?.stage ? t[STAGE_I18N_KEYS[status.stage]] : 'Starting…'
 
   if (done) {
     return (
       <div className="flex flex-col items-center gap-3">
         <CheckCircle size={36} className="text-emerald-400" />
-        <p className="text-zinc-200 font-semibold">Categorization complete!</p>
-        <p className="text-zinc-500 text-sm">Loading your mindmap…</p>
+        <p className="text-zinc-200 font-semibold">{t.mindmapCategorizationComplete}</p>
+        <p className="text-zinc-500 text-sm">{t.mindmapReloading}</p>
         <Loader2 size={18} className="text-indigo-400 animate-spin mt-1" />
       </div>
     )
@@ -156,7 +166,7 @@ function UncategorizedState({ totalBookmarks }: { totalBookmarks: number }) {
           <p className="text-zinc-200 font-semibold">{stageLabel}</p>
           {status?.stage === 'categorize' && status.total > 0 && (
             <p className="text-zinc-500 text-sm mt-1">
-              {status.done} / {status.total} bookmarks
+              {status.done} / {status.total} {t.bookmarksOfTotal}
               {progress !== null && ` (${progress}%)`}
             </p>
           )}
@@ -172,10 +182,10 @@ function UncategorizedState({ totalBookmarks }: { totalBookmarks: number }) {
         <Sparkles size={28} className="text-indigo-400" />
       </div>
       <div>
-        <p className="text-xl font-semibold text-zinc-100">Bookmarks not categorized yet</p>
+        <p className="text-xl font-semibold text-zinc-100">{t.bookmarksNotYetCategorized}</p>
         <p className="text-zinc-500 text-sm mt-1.5 leading-relaxed">
-          You have <span className="text-zinc-300 font-medium">{totalBookmarks.toLocaleString()}</span> bookmarks imported.
-          Run AI categorization to populate the mindmap.
+          {t.bookmarksImported} <span className="text-zinc-300 font-medium">{totalBookmarks.toLocaleString()}</span> {t.bookmarksOfTotal}.{' '}
+          {t.mindmapRunAiFirst}
         </p>
       </div>
       {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -184,7 +194,7 @@ function UncategorizedState({ totalBookmarks }: { totalBookmarks: number }) {
         className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
       >
         <Sparkles size={16} />
-        Start AI Categorization
+        {t.mindmapStartAiCategorization}
       </button>
     </div>
   )
@@ -199,6 +209,7 @@ function MindmapOverlay({
   pipeline: CategorizeStatus | null
   onDismiss: () => void
 }) {
+  const { t } = useI18n()
   const [running, setRunning] = useState(pipeline?.status === 'running' || pipeline?.status === 'stopping')
   const [done, setDone] = useState(false)
   const [status, setStatus] = useState<CategorizeStatus | null>(pipeline)
@@ -249,7 +260,7 @@ function MindmapOverlay({
   }
 
   const isPipelineRunning = pipeline?.status === 'running' || pipeline?.status === 'stopping'
-  const stageLabel = status?.stage ? STAGE_LABELS[status.stage] : 'Starting…'
+  const stageLabel = status?.stage ? t[STAGE_I18N_KEYS[status.stage]] : 'Starting…'
   const progress = status?.stage === 'categorize' && status.total > 0
     ? Math.round((status.done / status.total) * 100)
     : null
@@ -260,8 +271,8 @@ function MindmapOverlay({
         {done ? (
           <div className="flex flex-col items-center gap-4">
             <CheckCircle size={44} className="text-emerald-400" />
-            <p className="text-xl font-bold text-zinc-100">Categorization complete!</p>
-            <p className="text-zinc-500 text-sm">Reloading your mindmap…</p>
+            <p className="text-xl font-bold text-zinc-100">{t.mindmapCategorizationComplete}</p>
+            <p className="text-zinc-500 text-sm">{t.mindmapReloading}</p>
             <Loader2 size={18} className="text-indigo-400 animate-spin" />
           </div>
         ) : running ? (
@@ -270,17 +281,17 @@ function MindmapOverlay({
               <Loader2 size={32} className="text-indigo-400 animate-spin" />
             </div>
             <div>
-              <p className="text-xl font-bold text-zinc-100">AI Categorization in Progress</p>
+              <p className="text-xl font-bold text-zinc-100">{t.mindmapAiInProgress}</p>
               <p className="text-zinc-400 text-sm mt-1.5">{stageLabel}</p>
               {status?.stage === 'categorize' && status.total > 0 && (
                 <p className="text-zinc-500 text-sm mt-1">
-                  {status.done} / {status.total} bookmarks
+                  {status.done} / {status.total} {t.bookmarksOfTotal}
                   {progress !== null && ` (${progress}%)`}
                 </p>
               )}
             </div>
             <p className="text-zinc-600 text-xs">
-              The mindmap will populate automatically when done.
+              {t.mindmapWillAutoPopulate}
             </p>
           </div>
         ) : (
@@ -289,10 +300,10 @@ function MindmapOverlay({
               <Sparkles size={28} className="text-indigo-400" />
             </div>
             <div>
-              <p className="text-xl font-bold text-zinc-100">Bookmarks Not Categorized Yet</p>
+              <p className="text-xl font-bold text-zinc-100">{t.bookmarksNotYetCategorized}</p>
               <p className="text-zinc-400 text-sm mt-2 leading-relaxed">
-                You have <span className="text-zinc-200 font-semibold">{totalBookmarks.toLocaleString()}</span> bookmarks imported.
-                The mindmap will fill in once AI categorization completes.
+                {t.bookmarksImported} <span className="text-zinc-200 font-semibold">{totalBookmarks.toLocaleString()}</span> {t.bookmarksOfTotal}.{' '}
+                {t.mindmapWillAutoPopulate}
               </p>
             </div>
             {error && <p className="text-red-400 text-sm">{error}</p>}

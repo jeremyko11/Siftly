@@ -664,7 +664,7 @@ interface OAuthStatus {
   error?: string
 }
 
-function LiveImportTab({ onSynced }: { onSynced: (result: ImportResult) => void }) {
+function LiveImportTab({ onSynced, t }: { onSynced: (result: ImportResult) => void; t: ReturnType<typeof useI18n>['t'] }) {
   const [status, setStatus] = useState<OAuthStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [connecting, setConnecting] = useState(false)
@@ -846,7 +846,7 @@ function LiveImportTab({ onSynced }: { onSynced: (result: ImportResult) => void 
             {syncing ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                Fetching bookmarks...
+                {t.fetchingBookmarks}
               </>
             ) : (
               <>
@@ -1025,7 +1025,7 @@ function InstructionsStep({ onFile, importSource, onLiveSynced, t }: { onFile: (
       </div>
 
       {method === 'live' ? (
-        <LiveImportTab onSynced={onLiveSynced} />
+        <LiveImportTab onSynced={onLiveSynced} t={t} />
       ) : method === 'bird' ? (
         <BirdImportTab onSynced={onLiveSynced} t={t} />
       ) : method === 'bookmarklet' ? (

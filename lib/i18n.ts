@@ -19,6 +19,8 @@ export interface Translations {
   manage: string
   search: string
   searchPlaceholder: string
+  dmOnX: string
+  runAiAutoCategorize: string
 
   // Dashboard
   goodMorning: string
@@ -282,7 +284,14 @@ export interface Translations {
   newest: string
   oldest: string
   noBookmarksFound: string
+  noBookmarksMatchFilters: string
+  searchBookmarksPlaceholder: string
   clearFilters: string
+  photos: string
+  videos: string
+  allMedia: string
+  newestFirst: string
+  oldestFirst: string
 
   // Category Name Translations (for sidebar display)
   catAiResources: string
@@ -322,6 +331,9 @@ export interface Translations {
   askQuestion: string
   searching: string
   noResultsFound: string
+  aiSearchSubtitle: string
+  aiPoweredSearch: string
+  noBookmarksMatchedDescription: string
 
   // Categories
   categories: string
@@ -330,6 +342,59 @@ export interface Translations {
   addCategory: string
   deleteCategory: string
   confirmDelete: string
+  noBookmarksInCategory: string
+  bookmarksAcrossXCategories: string
+  organizeByTopic: string
+  createFirstCategory: string
+  createFirstCategoryBtn: string
+  autoAssignBookmarks: string
+  viewBookmarks: string
+  loadingYourCategories: string
+  noCategoriesYet: string
+  tipUse: string
+  newCategory: string
+  color: string
+
+  // Categorize / Pipeline
+  bookmarksOfTotal: string
+
+  // Mindmap
+  mindmapRunAiFirst: string
+  mindmapStartAiCategorization: string
+  mindmapCategorizationComplete: string
+  mindmapReloading: string
+  mindmapAiInProgress: string
+  mindmapWillAutoPopulate: string
+
+  // GitHub Repos
+  syncRepos: string
+  syncing: string
+  sortByStars: string
+  sortByName: string
+  sortByRecent: string
+  clickSyncReposEmpty: string
+  searchReposPlaceholder: string
+  githubTokenNotConfigured: string
+  githubTokenNotConfiguredDesc: string
+  reposSynced: string
+  reposAnalyzed: string
+  noReposSyncedYet: string
+  viewOnGithub: string
+  reanalyze: string
+  analyzing: string
+  pendingAiAnalysis: string
+  features: string
+  useCases: string
+  techStack: string
+  moreFeatures: string
+
+  // Mindmap
+  bookmarksImported: string
+  bookmarksNotYetCategorized: string
+  importAndCategorizeFirst: string
+
+  // AI Search
+  findAnything: string
 }
 
 const en: Translations = {
@@ -347,6 +412,8 @@ const en: Translations = {
   manage: 'Manage',
   search: 'Search',
   searchPlaceholder: 'Search…',
+  dmOnX: 'DM @viperr on X',
+  runAiAutoCategorize: 'Run AI to auto-categorize →',
   goodMorning: 'Good morning',
   goodAfternoon: 'Good afternoon',
   goodEvening: 'Good evening',
@@ -596,7 +663,14 @@ const en: Translations = {
   newest: 'Newest',
   oldest: 'Oldest',
   noBookmarksFound: 'No bookmarks found',
+  noBookmarksMatchFilters: 'No bookmarks match your filters',
+  searchBookmarksPlaceholder: 'Search bookmarks…',
   clearFilters: 'Clear filters',
+  photos: 'Photos',
+  videos: 'Videos',
+  allMedia: 'All media',
+  newestFirst: 'Newest first',
+  oldestFirst: 'Oldest first',
 
   // Category Translations
   catAiResources: 'AI & Machine Learning',
@@ -636,6 +710,9 @@ const en: Translations = {
   askQuestion: 'Ask a question…',
   searching: 'Searching…',
   noResultsFound: 'No results found',
+  aiSearchSubtitle: "Describe what you're looking for below.",
+  aiPoweredSearch: 'AI-Powered Search',
+  noBookmarksMatchedDescription: 'No bookmarks matched that description. Try different words.',
 
   // Categories
   categories: 'Categories',
@@ -644,6 +721,55 @@ const en: Translations = {
   addCategory: 'Add category',
   deleteCategory: 'Delete category',
   confirmDelete: 'Are you sure you want to delete this category?',
+  noBookmarksInCategory: 'No bookmarks in this category',
+  bookmarksAcrossXCategories: 'bookmarks across',
+  organizeByTopic: 'Organize your bookmarks by topic',
+  createFirstCategory: 'Create your first category to start organizing your bookmarks by topic.',
+  createFirstCategoryBtn: 'Create first category',
+  autoAssignBookmarks: 'to automatically assign bookmarks to your categories.',
+  viewBookmarks: 'View bookmarks',
+  loadingYourCategories: 'Loading your categories...',
+  noCategoriesYet: 'No categories yet',
+  tipUse: 'Tip: Use ',
+  newCategory: 'New Category',
+  color: 'Color',
+
+  // GitHub Repos
+  syncRepos: 'Sync Repos',
+  syncing: 'Syncing…',
+  sortByStars: 'Stars',
+  sortByName: 'Name',
+  sortByRecent: 'Recent',
+  clickSyncReposEmpty: 'Click "Sync Repos" to extract all GitHub links from your bookmarks and fetch metadata.',
+  searchReposPlaceholder: 'Search repos by name or description…',
+  githubTokenNotConfigured: 'GitHub token not configured',
+  githubTokenNotConfiguredDesc: 'Add a GitHub Personal Access Token in Settings to enable repo syncing. Requires repo scope.',
+  reposSynced: 'synced',
+  reposAnalyzed: 'analyzed',
+  noReposSyncedYet: 'No repos synced yet',
+  viewOnGithub: 'View on GitHub',
+  reanalyze: 'Re-analyze',
+  analyzing: 'Analyzing…',
+  pendingAiAnalysis: 'Pending AI analysis',
+  features: 'Features',
+  useCases: 'Use Cases',
+  techStack: 'Stack:',
+  moreFeatures: 'more',
+
+  // Mindmap
+  bookmarksImported: 'You have',
+  bookmarksNotYetCategorized: 'Bookmarks Not Categorized Yet',
+  importAndCategorizeFirst: 'Import and categorize bookmarks first.',
+  bookmarksOfTotal: 'bookmarks',
+  mindmapRunAiFirst: 'Run AI categorization to populate the mindmap.',
+  mindmapStartAiCategorization: 'Start AI Categorization',
+  mindmapCategorizationComplete: 'Categorization complete!',
+  mindmapReloading: 'Reloading your mindmap…',
+  mindmapAiInProgress: 'AI Categorization in Progress',
+  mindmapWillAutoPopulate: 'The mindmap will populate automatically when done.',
+
+  // AI Search
+  findAnything: 'Find anything in your bookmarks',
 }
 
 const zh: Translations = {
@@ -661,6 +787,8 @@ const zh: Translations = {
   manage: '管理',
   search: '搜索',
   searchPlaceholder: '搜索…',
+  dmOnX: '在 X 上私信 @viperr',
+  runAiAutoCategorize: '运行 AI 自动分类 →',
   goodMorning: '早上好',
   goodAfternoon: '下午好',
   goodEvening: '晚上好',
@@ -910,7 +1038,14 @@ const zh: Translations = {
   newest: '最新',
   oldest: '最旧',
   noBookmarksFound: '未找到书签',
+  noBookmarksMatchFilters: '没有书签符合筛选条件',
+  searchBookmarksPlaceholder: '搜索书签…',
   clearFilters: '清除筛选',
+  photos: '图片',
+  videos: '视频',
+  allMedia: '所有媒体',
+  newestFirst: '最新优先',
+  oldestFirst: '最旧优先',
 
   // Category Translations
   catAiResources: 'AI 与机器学习',
@@ -950,6 +1085,9 @@ const zh: Translations = {
   askQuestion: '问一个问题…',
   searching: '搜索中…',
   noResultsFound: '未找到结果',
+  aiSearchSubtitle: '在下方描述你要查找的内容。',
+  aiPoweredSearch: 'AI 驱动搜索',
+  noBookmarksMatchedDescription: '没有书签匹配此描述。请尝试不同的关键词。',
 
   // Categories
   categories: '分类',
@@ -958,6 +1096,55 @@ const zh: Translations = {
   addCategory: '添加分类',
   deleteCategory: '删除分类',
   confirmDelete: '确定要删除这个分类吗？',
+  noBookmarksInCategory: '此分类下暂无书签',
+  bookmarksAcrossXCategories: '条书签分布在',
+  organizeByTopic: '按主题整理你的书签',
+  createFirstCategory: '创建你的第一个分类，开始按主题整理书签。',
+  createFirstCategoryBtn: '创建第一个分类',
+  autoAssignBookmarks: '来自动将书签分配到你的分类。',
+  viewBookmarks: '查看书签',
+  loadingYourCategories: '加载中…',
+  noCategoriesYet: '暂无分类',
+  tipUse: '提示：使用 ',
+  newCategory: '新建分类',
+  color: '颜色',
+
+  // GitHub Repos
+  syncRepos: '同步仓库',
+  syncing: '同步中…',
+  sortByStars: '星标',
+  sortByName: '名称',
+  sortByRecent: '最新',
+  clickSyncReposEmpty: '点击"同步仓库"从书签中提取所有 GitHub 链接并获取元数据。',
+  searchReposPlaceholder: '按名称或描述搜索仓库…',
+  githubTokenNotConfigured: '未配置 GitHub 令牌',
+  githubTokenNotConfiguredDesc: '在设置中添加 GitHub 个人访问令牌以启用仓库同步。需要 repo 权限。',
+  reposSynced: '已同步',
+  reposAnalyzed: '已分析',
+  noReposSyncedYet: '尚未同步任何仓库',
+  viewOnGithub: '在 GitHub 上查看',
+  reanalyze: '重新分析',
+  analyzing: '分析中…',
+  pendingAiAnalysis: '等待 AI 分析',
+  features: '功能特点',
+  useCases: '使用场景',
+  techStack: '技术栈：',
+  moreFeatures: '更多',
+
+  // Mindmap
+  bookmarksImported: '你已导入',
+  bookmarksNotYetCategorized: '书签尚未分类',
+  importAndCategorizeFirst: '请先导入并分类书签。',
+  bookmarksOfTotal: '条书签',
+  mindmapRunAiFirst: '运行 AI 分类来填充思维导图。',
+  mindmapStartAiCategorization: '开始 AI 分类',
+  mindmapCategorizationComplete: '分类完成！',
+  mindmapReloading: '正在重新加载思维导图…',
+  mindmapAiInProgress: 'AI 分类进行中',
+  mindmapWillAutoPopulate: '思维导图完成后会自动填充。',
+
+  // AI Search
+  findAnything: '在你的书签中查找任何内容',
 }
 
 export const translations: Record<Language, Translations> = { en, zh }

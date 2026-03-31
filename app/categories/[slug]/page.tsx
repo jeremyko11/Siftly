@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Download, ArrowLeft } from 'lucide-react'
 import MasonryGrid from '@/components/MasonryGrid'
+import { useI18n } from '@/lib/i18n-context'
 import type { BookmarkWithMedia, Category } from '@/lib/types'
 
 const PAGE_SIZE = 24
@@ -15,6 +16,7 @@ interface CategoryPageData {
 }
 
 export default function CategoryPage() {
+  const { t } = useI18n()
   const { slug } = useParams<{ slug: string }>()
   const router = useRouter()
   const [data, setData] = useState<CategoryPageData | null>(null)
@@ -135,7 +137,7 @@ export default function CategoryPage() {
           </div>
         ) : bookmarks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-xl font-semibold text-zinc-400">No bookmarks in this category</p>
+            <p className="text-xl font-semibold text-zinc-400">{t.noBookmarksInCategory}</p>
           </div>
         ) : (
           <MasonryGrid
