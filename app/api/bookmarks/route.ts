@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { unwrapTcoUrls } from '@/lib/url-unwrapper'
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 24
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       prisma.bookmark.count({ where }),
     ])
 
-    const formatted = bookmarks.map((bookmark) => {
+    const formatted = await Promise.all(bookmarks.map(async (bookmark) => {
       // Extract expanded URLs and hashtags from rawJson
       let urls: string[] = []
       let hashtags: string[] = []
@@ -116,6 +117,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           urls = urlMatches
         }
       }
+      // Resolve t.co shortlinks to their final destination
+      urls = await unwrapTcoUrls(urls)
       if (hashtags.length === 0) {
         const tagMatches = bookmark.text.match(/#[\w\u4e00-\u9fff]+/g) ?? []
         hashtags = tagMatches.map((t) => t.replace(/^#/, ''))
@@ -146,7 +149,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         urls,
         hashtags,
       }
-    })
+    }))
 
     return NextResponse.json({
       bookmarks: formatted,
