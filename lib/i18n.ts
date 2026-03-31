@@ -361,6 +361,7 @@ export interface Translations {
   // Mindmap
   mindmapRunAiFirst: string
   mindmapStartAiCategorization: string
+  mindmapDismiss: string
   mindmapCategorizationComplete: string
   mindmapReloading: string
   mindmapAiInProgress: string
@@ -763,6 +764,7 @@ const en: Translations = {
   bookmarksOfTotal: 'bookmarks',
   mindmapRunAiFirst: 'Run AI categorization to populate the mindmap.',
   mindmapStartAiCategorization: 'Start AI Categorization',
+  mindmapDismiss: 'Dismiss and view empty map',
   mindmapCategorizationComplete: 'Categorization complete!',
   mindmapReloading: 'Reloading your mindmap…',
   mindmapAiInProgress: 'AI Categorization in Progress',
@@ -1138,6 +1140,7 @@ const zh: Translations = {
   bookmarksOfTotal: '条书签',
   mindmapRunAiFirst: '运行 AI 分类来填充思维导图。',
   mindmapStartAiCategorization: '开始 AI 分类',
+  mindmapDismiss: '关闭并查看空白的图',
   mindmapCategorizationComplete: '分类完成！',
   mindmapReloading: '正在重新加载思维导图…',
   mindmapAiInProgress: 'AI 分类进行中',

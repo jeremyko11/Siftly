@@ -293,6 +293,12 @@ function MindmapOverlay({
             <p className="text-zinc-600 text-xs">
               {t.mindmapWillAutoPopulate}
             </p>
+            <button
+              onClick={onDismiss}
+              className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors py-1"
+            >
+              Dismiss
+            </button>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-5">
@@ -313,16 +319,14 @@ function MindmapOverlay({
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
               >
                 <Sparkles size={16} />
-                Start AI Categorization
+                {t.mindmapStartAiCategorization}
               </button>
-              {isPipelineRunning && (
-                <button
-                  onClick={onDismiss}
-                  className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors py-1"
-                >
-                  Dismiss and view empty map
-                </button>
-              )}
+              <button
+                onClick={onDismiss}
+                className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors py-1"
+              >
+                {t.mindmapDismiss}
+              </button>
             </div>
           </div>
         )}
