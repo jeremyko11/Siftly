@@ -103,7 +103,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       if (bookmark.rawJson) {
         try {
           const raw = JSON.parse(bookmark.rawJson)
-          urls = (raw.entities?.urls ?? []).map((u: { expanded_url?: string; url?: string }) => u.expanded_url ?? u.url ?? '').filter(Boolean)
+          urls = (raw.entities?.urls ?? []).map((u: { unwound_url?: string; expanded_url?: string; url?: string }) => u.unwound_url ?? u.expanded_url ?? u.url ?? '').filter(Boolean)
           hashtags = (raw.entities?.hashtags ?? []).map((h: { text?: string }) => h.text ?? '').filter(Boolean)
         } catch {}
       }

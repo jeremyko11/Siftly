@@ -34,6 +34,7 @@ interface TwitterMediaEntity {
 interface TwitterUrlEntity {
   expanded_url?: string
   url?: string
+  unwound_url?: string
 }
 
 interface TwitterHashtagEntity {
@@ -99,7 +100,7 @@ function extractHashtags(tweet: RawTweet): string[] {
 function extractUrls(tweet: RawTweet): string[] {
   const urlEntities = tweet.entities?.urls ?? []
   return urlEntities
-    .map((u) => u.expanded_url ?? u.url ?? '')
+    .map((u) => u.unwound_url ?? u.expanded_url ?? u.url ?? '')
     .filter((u) => u.length > 0)
 }
 

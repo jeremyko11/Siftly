@@ -203,8 +203,8 @@ export function extractEntities(rawJson: string): ExtractedEntities {
     safeGet(t, 'legacy', 'entities', 'urls') ??
     []
   const urls = (urlObjs as Record<string, unknown>[])
-    .map((u) => String(u.expanded_url ?? u.url ?? ''))
-    .filter((u) => u && !u.includes('twitter.com') && !u.includes('t.co/') && !u.includes('x.com/'))
+    .map((u) => String(u.unwound_url ?? u.expanded_url ?? u.url ?? ''))
+    .filter((u) => u && !u.includes('twitter.com') && !u.includes('x.com/'))
 
   // Mentions
   const mentionObjs: unknown[] =
