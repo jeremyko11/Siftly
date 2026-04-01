@@ -456,23 +456,18 @@ function TopMediaSlot({ item, tweetUrl, t }: TopMediaSlotProps) {
     )
   }
 
-  // ── Video/GIF: always redirect to tweet — can't play locally ──────────────
-  // Guard: thumbnailUrl that is itself a video URL is not usable as an <img>
-  const rawThumb = item.thumbnailUrl ?? null
-  const thumb = rawThumb && !isVideoUrl(rawThumb) ? rawThumb
-    : (!isVideoUrl(item.url) ? item.url : deriveVideoThumb(item.url))
-
+  // ── Video/GIF: clicking opens the tweet where the native player works ───
   return (
     <a href={tweetUrl} target="_blank" rel="noopener noreferrer" className="relative block" onClick={(e) => e.stopPropagation()}>
-      {thumb && !imgError ? (
+      {item.thumbnailUrl && !isVideoUrl(item.thumbnailUrl) ? (
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={proxyUrl(thumb)}
+            src={proxyUrl(item.thumbnailUrl)}
             alt=""
             className="w-full h-48 object-cover"
             loading="lazy"
-            onError={() => setImgError(true)}
+            onError={() => {}}
           />
           <MediaOverlay t={t} />
         </div>
@@ -1116,9 +1111,9 @@ function PreviewModal({ bookmark, tweetUrl, cleanText, firstMedia, isKnownAuthor
                   style={{ aspectRatio: '16/9' }}
                 >
                   {media.type === 'video' || media.type === 'animated_gif' ? (
-                    <img src={media.thumbnailUrl ?? media.url} alt="" className="w-full h-full object-cover" />
+                    <img src={proxyUrl(media.thumbnailUrl ?? media.url)} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <img src={media.url} alt="" className="w-full h-full object-cover" />
+                    <img src={proxyUrl(media.url)} alt="" className="w-full h-full object-cover" />
                   )}
                   {/* Play icon for video */}
                   {(media.type === 'video' || media.type === 'animated_gif') && (
@@ -1282,7 +1277,7 @@ function PreviewModal({ bookmark, tweetUrl, cleanText, firstMedia, isKnownAuthor
           )}
           {lightboxMedia.type === 'video' || lightboxMedia.type === 'animated_gif' ? (
             <video
-              src={lightboxMedia.url}
+              src={proxyUrl(lightboxMedia.url)}
               controls
               autoPlay
               className="max-w-full max-h-full object-contain"
@@ -1290,7 +1285,7 @@ function PreviewModal({ bookmark, tweetUrl, cleanText, firstMedia, isKnownAuthor
             />
           ) : (
             <img
-              src={lightboxMedia.url}
+              src={proxyUrl(lightboxMedia.url)}
               alt=""
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}

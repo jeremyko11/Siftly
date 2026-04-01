@@ -7,6 +7,8 @@ export interface Translations {
   // Nav
   dashboard: string
   githubRepos: string
+  myRepos: string
+  discover: string
   aiSearch: string
   browse: string
   mindmap: string
@@ -401,6 +403,8 @@ export interface Translations {
 const en: Translations = {
   dashboard: 'Dashboard',
   githubRepos: 'GitHub Repos',
+  myRepos: 'My Repos',
+  discover: 'Discover',
   aiSearch: 'AI Search',
   browse: 'Browse',
   mindmap: 'Mindmap',
@@ -777,6 +781,8 @@ const en: Translations = {
 const zh: Translations = {
   dashboard: '仪表盘',
   githubRepos: 'GitHub 仓库',
+  myRepos: '我的仓库',
+  discover: '发现仓库',
   aiSearch: 'AI 搜索',
   browse: '浏览',
   mindmap: '思维导图',

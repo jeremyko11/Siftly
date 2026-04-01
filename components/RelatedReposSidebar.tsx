@@ -433,8 +433,8 @@ export default function RelatedReposSidebar() {
   const [historyRepos, setHistoryRepos] = useState<HistoryRepo[]>([])
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState<Set<string>>(new Set())
-  const [refreshKey, setRefreshKey] = useState(0)
-  const fetchedRef = useRef<Set<string>>(new Set())
+  const [tabVersion, setTabVersion] = useState<Record<string, number>>({})
+  const fetchedVersionRef = useRef<Record<string, number>>({})
   const translateCache = useRef(new Map<string, string>()).current
 
   // Manual search state
@@ -445,14 +445,16 @@ export default function RelatedReposSidebar() {
   const [addingPreview, setAddingPreview] = useState(false)
   const [previewAdded, setPreviewAdded] = useState(false)
 
-  // Fetch repos when tab changes
+  // Fetch repos when tab or version changes
   useEffect(() => {
     if (collapsed) return
 
-    // Include refreshKey in cacheKey so refresh button triggers re-fetch
-    const cacheKey = `${tab}-${refreshKey}`
-    if (fetchedRef.current.has(cacheKey)) return
-    fetchedRef.current.add(cacheKey)
+    const key = tab
+    const currentVersion = tabVersion[tab] ?? 0
+
+    // Skip if we already fetched this exact (tab, version) combination
+    if (fetchedVersionRef.current[key] === currentVersion) return
+    fetchedVersionRef.current[key] = currentVersion
 
     if (tab === 'history') {
       setLoading(true)
@@ -468,8 +470,8 @@ export default function RelatedReposSidebar() {
 
     setLoading(true)
     const params = new URLSearchParams({ mode: tab })
-    if (tab === 'by-language') params.set('q', 'language:Python stars:>5000')
-
+    // Pass version so API rotates through different queries on each refresh
+    params.set('refresh', String(currentVersion))
     fetch(`/api/github-related?${params}`)
       .then((r) => r.json())
       .then((d: { repos?: SearchRepo[] }) => {
@@ -477,7 +479,7 @@ export default function RelatedReposSidebar() {
       })
       .catch(() => setRepos([]))
       .finally(() => setLoading(false))
-  }, [tab, collapsed, refreshKey])
+  }, [tab, collapsed, tabVersion])
 
   function handleAdded(repo: SearchRepo) {
     setAdded((prev) => new Set([...prev, repo.fullName]))
@@ -600,7 +602,7 @@ export default function RelatedReposSidebar() {
         <div className="flex items-center gap-1">
           {tab !== 'history' && (
             <button
-              onClick={() => setRefreshKey((k) => k + 1)}
+              onClick={() => setTabVersion((prev) => ({ ...prev, [tab]: (prev[tab] ?? 0) + 1 }))}
               className="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
               title="刷新推荐"
             >
