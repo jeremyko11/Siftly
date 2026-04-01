@@ -67,11 +67,13 @@ export interface Repo {
   stars: number
   language: string | null
   topics: string[]
-  readmeContent: string | null
   features: RepoFeature[] | null
   useCases: RepoUseCase[] | null
   techStack: string[] | null
   summary: string | null
+  featuresZh: RepoFeature[] | null
+  useCasesZh: RepoUseCase[] | null
+  summaryZh: string | null
   readmeAnalyzedAt: string | null
   importedAt: string
 }

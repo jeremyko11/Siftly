@@ -4,6 +4,50 @@ import { syncReposFromBookmarks } from '@/lib/github-client'
 import { resolveAIClient } from '@/lib/ai-client'
 import { getProvider } from '@/lib/settings'
 
+const ANALYSIS_PROMPT = `You are a senior software engineer analyzing a GitHub repository README.
+
+Extract the following in strict JSON format:
+
+{
+  "features": [
+    { "title": "Feature name (max 5 words)", "description": "2-3 sentence description of what it does and how it works" }
+  ],
+  "useCases": [
+    { "scenario": "Use case title", "description": "When and why to use this" }
+  ],
+  "techStack": ["list of main technologies, frameworks, languages used"],
+  "summary": "1-2 sentence summary accessible to a technical but non-expert audience"
+}
+
+Rules:
+- Extract 3-7 most important features
+- Focus on practical use cases, not marketing language
+- techStack: 3-8 items max
+- Return ONLY valid JSON, no markdown, no explanation`
+
+const TRANSLATION_PROMPT = `You are a professional translator. Translate the following JSON analysis result from English to Chinese (Simplified Chinese, zh-CN).
+
+The JSON has this exact structure:
+{
+  "features": [{ "title": "string", "description": "string" }],
+  "useCases": [{ "scenario": "string", "description": "string" }],
+  "summary": "string"
+}
+
+Rules:
+- Translate ALL field values (titles, descriptions, scenarios, summary text) to Chinese
+- Keep the JSON structure identical
+- Return ONLY valid JSON, no markdown, no explanation`
+
+function extractJson(text: string): string {
+  const standardMatch = text.match(/\{[\s\S]*\}/)
+  if (standardMatch) return standardMatch[0]
+  const first = text.indexOf('{')
+  const last = text.lastIndexOf('}')
+  if (first !== -1 && last > first) return text.slice(first, last + 1)
+  throw new Error('No JSON found')
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   let bookmarkIds: string[] | undefined
 
@@ -58,10 +102,46 @@ async function analyzeReposInBackground() {
 
     const model = provider === 'openai' ? 'gpt-4o' : 'claude-sonnet-4-20250514'
 
+    const aiClient = client as { createMessage: (params: { model: string; max_tokens: number; messages: { role: string; content: string }[] }) => Promise<{ text: string }> }
+
+    const callAI = async (prompt: string, content: string) => {
+      const response = await Promise.race([
+        aiClient.createMessage({
+          model,
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: `${prompt}\n\n${content}` }],
+        }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('AI timeout (60s)')), 60_000)),
+      ])
+      return JSON.parse(extractJson(response.text.trim()))
+    }
+
     for (const repo of repos) {
       if (!repo.readmeContent) continue
       try {
-        const analysis = await analyzeReadme(repo.readmeContent, client, model)
+        const text = repo.readmeContent.slice(0, 8000)
+
+        // Step 1: Generate English analysis
+        const parsed = await callAI(ANALYSIS_PROMPT, `README:\n${text}`)
+        const analysis = {
+          features: Array.isArray(parsed.features) ? parsed.features : [],
+          useCases: Array.isArray(parsed.useCases) ? parsed.useCases : [],
+          techStack: Array.isArray(parsed.techStack) ? parsed.techStack : [],
+          summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+        }
+
+        // Step 2: Translate to Chinese
+        const zhParsed = await callAI(TRANSLATION_PROMPT, JSON.stringify({
+          features: analysis.features,
+          useCases: analysis.useCases,
+          summary: analysis.summary,
+        }))
+        const zhAnalysis = {
+          features: Array.isArray(zhParsed.features) ? zhParsed.features : [],
+          useCases: Array.isArray(zhParsed.useCases) ? zhParsed.useCases : [],
+          summary: typeof zhParsed.summary === 'string' ? zhParsed.summary : '',
+        }
+
         await prisma.repo.update({
           where: { id: repo.id },
           data: {
@@ -69,91 +149,18 @@ async function analyzeReposInBackground() {
             useCases: JSON.stringify(analysis.useCases),
             techStack: JSON.stringify(analysis.techStack),
             summary: analysis.summary,
+            featuresZh: JSON.stringify(zhAnalysis.features),
+            useCasesZh: JSON.stringify(zhAnalysis.useCases),
+            summaryZh: zhAnalysis.summary,
             readmeAnalyzedAt: new Date(),
           },
         })
-        console.log(`[repos/analyze] analyzed repo ${repo.id}`)
+        console.log(`[repos/analyze] analyzed + translated repo ${repo.id}`)
       } catch (err) {
         console.warn(`[repos/analyze] failed for ${repo.id}:`, err)
       }
     }
   } catch (err) {
     console.error('[repos/analyze] background analysis error:', err)
-  }
-}
-
-const ANALYSIS_PROMPT = `You are a senior software engineer analyzing a GitHub repository README.
-
-Extract the following in strict JSON format:
-
-{
-  "features": [
-    { "title": "Feature name (max 5 words)", "description": "2-3 sentence description of what it does and how it works" }
-  ],
-  "useCases": [
-    { "scenario": "Use case title", "description": "When and why to use this" }
-  ],
-  "techStack": ["list of main technologies, frameworks, languages used"],
-  "summary": "1-2 sentence summary accessible to a technical but non-expert audience"
-}
-
-Rules:
-- Extract 3-7 most important features
-- Focus on practical use cases, not marketing language
-- techStack: 3-8 items max, the main tools/frameworks/languages
-- Return ONLY valid JSON, no markdown, no explanation
-- If README is too short or unclear, still return valid JSON with what you can determine`
-
-async function analyzeReadme(
-  readmeContent: string,
-  client: unknown,
-  model: string,
-): Promise<{ features: { title: string; description: string }[]; useCases: { scenario: string; description: string }[]; techStack: string[]; summary: string }> {
-  const text = readmeContent.slice(0, 8000) // first 8k chars is enough
-
-  const aiClient = client as { createMessage: (params: { model: string; max_tokens: number; messages: { role: string; content: string }[] }) => Promise<{ text: string }> }
-
-  const response = await Promise.race([
-    aiClient.createMessage({
-      model,
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: `${ANALYSIS_PROMPT}\n\nREADME:\n${text}` }],
-    }),
-    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('AI timeout (60s)')), 60_000)),
-  ])
-
-  const text2 = response.text.trim()
-  let jsonText: string | null = null
-
-  // Try multiple extraction strategies
-  const standardMatch = text2.match(/\[[\s\S]*\]/)
-  if (standardMatch) jsonText = standardMatch[0]
-
-  if (!jsonText) {
-    const codeBlockMatch = text2.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
-    if (codeBlockMatch) jsonText = codeBlockMatch[1]
-  }
-
-  if (!jsonText) {
-    const first = text2.indexOf('{')
-    const last = text2.lastIndexOf('}')
-    if (first !== -1 && last > first) jsonText = text2.slice(first, last + 1)
-  }
-
-  if (!jsonText) throw new Error('No JSON found in AI response')
-
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(jsonText)
-  } catch {
-    throw new Error('Failed to parse AI response as JSON')
-  }
-
-  const p = parsed as Record<string, unknown>
-  return {
-    features: Array.isArray(p.features) ? p.features as { title: string; description: string }[] : [],
-    useCases: Array.isArray(p.useCases) ? p.useCases as { scenario: string; description: string }[] : [],
-    techStack: Array.isArray(p.techStack) ? p.techStack as string[] : [],
-    summary: typeof p.summary === 'string' ? p.summary : '',
   }
 }

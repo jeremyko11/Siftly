@@ -24,6 +24,29 @@ Rules:
 - techStack: 3-8 items max
 - Return ONLY valid JSON, no markdown, no explanation`
 
+const TRANSLATION_PROMPT = `You are a professional translator. Translate the following JSON analysis result from English to Chinese (Simplified Chinese, zh-CN).
+
+The JSON has this exact structure:
+{
+  "features": [{ "title": "string", "description": "string" }],
+  "useCases": [{ "scenario": "string", "description": "string" }],
+  "summary": "string"
+}
+
+Rules:
+- Translate ALL field values (titles, descriptions, scenarios, summary text) to Chinese
+- Keep the JSON structure identical
+- Return ONLY valid JSON, no markdown, no explanation`
+
+function extractJson(text: string): string {
+  const standardMatch = text.match(/\{[\s\S]*\}/)
+  if (standardMatch) return standardMatch[0]
+  const first = text.indexOf('{')
+  const last = text.lastIndexOf('}')
+  if (first !== -1 && last > first) return text.slice(first, last + 1)
+  throw new Error('No JSON found')
+}
+
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -50,35 +73,31 @@ export async function POST(
 
     const aiClient = client as { createMessage: (params: { model: string; max_tokens: number; messages: { role: string; content: string }[] }) => Promise<{ text: string }> }
 
-    const response = await Promise.race([
-      aiClient.createMessage({
-        model,
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: `${ANALYSIS_PROMPT}\n\nREADME:\n${text}` }],
-      }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('AI timeout (60s)')), 60_000)),
-    ])
-
-    const responseText = response.text.trim()
-    let jsonText: string | null = null
-
-    const standardMatch = responseText.match(/\{[\s\S]*\}/)
-    if (standardMatch) jsonText = standardMatch[0]
-
-    if (!jsonText) {
-      const first = responseText.indexOf('{')
-      const last = responseText.lastIndexOf('}')
-      if (first !== -1 && last > first) jsonText = responseText.slice(first, last + 1)
+    const callAI = async (prompt: string, content: string) => {
+      const response = await Promise.race([
+        aiClient.createMessage({
+          model,
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: `${prompt}\n\n${content}` }],
+        }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('AI timeout (60s)')), 60_000)),
+      ])
+      return JSON.parse(extractJson(response.text.trim()))
     }
 
-    if (!jsonText) throw new Error('No JSON found in AI response')
-
-    const parsed = JSON.parse(jsonText) as Record<string, unknown>
+    const parsed = await callAI(ANALYSIS_PROMPT, `README:\n${text}`)
     const analysis = {
       features: Array.isArray(parsed.features) ? parsed.features : [],
       useCases: Array.isArray(parsed.useCases) ? parsed.useCases : [],
       techStack: Array.isArray(parsed.techStack) ? parsed.techStack : [],
       summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+    }
+
+    const zhParsed = await callAI(TRANSLATION_PROMPT, JSON.stringify(analysis))
+    const analysisZh = {
+      features: Array.isArray(zhParsed.features) ? zhParsed.features : [],
+      useCases: Array.isArray(zhParsed.useCases) ? zhParsed.useCases : [],
+      summary: typeof zhParsed.summary === 'string' ? zhParsed.summary : '',
     }
 
     await prisma.repo.update({
@@ -88,11 +107,14 @@ export async function POST(
         useCases: JSON.stringify(analysis.useCases),
         techStack: JSON.stringify(analysis.techStack),
         summary: analysis.summary,
+        featuresZh: JSON.stringify(analysisZh.features),
+        useCasesZh: JSON.stringify(analysisZh.useCases),
+        summaryZh: analysisZh.summary,
         readmeAnalyzedAt: new Date(),
       },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, analysis, analysisZh })
   } catch (err) {
     console.error(' reanalyze error:', err)
     return NextResponse.json(

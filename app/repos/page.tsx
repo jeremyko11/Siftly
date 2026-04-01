@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Github, RefreshCw, Search, ArrowUpDown, AlertCircle } from 'lucide-react'
-import RepoCard from '@/components/RepoCard'
+import LazyRepoCard from '@/components/LazyRepoCard'
+import RelatedReposSidebar from '@/components/RelatedReposSidebar'
 import type { Repo, ReposResponse } from '@/lib/types'
 import { useI18n } from '@/lib/i18n-context'
 
-const REPO_GRID_CLASS = 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6'
+const REPO_GRID_CLASS = 'grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'
 
 export default function ReposPage() {
   const { t } = useI18n()
@@ -129,67 +130,73 @@ export default function ReposPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-6 md:px-8 py-6">
-        {/* No token banner */}
-        {!hasToken && !loading && (
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
-            <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-amber-300">{t.githubTokenNotConfigured}</p>
-              <p className="text-xs text-amber-500/80 mt-0.5">
-                {t.githubTokenNotConfiguredDesc}
+      {/* Content — flex row: repo grid + sidebar */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main repo grid area */}
+        <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6">
+          {/* No token banner */}
+          {!hasToken && !loading && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
+              <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-300">{t.githubTokenNotConfigured}</p>
+                <p className="text-xs text-amber-500/80 mt-0.5">
+                  {t.githubTokenNotConfiguredDesc}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Sync error */}
+          {syncError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 mb-4 text-xs text-red-400">
+              <AlertCircle size={12} />
+              {syncError}
+            </div>
+          )}
+
+          {/* Loading skeletons */}
+          {loading && (
+            <div className={REPO_GRID_CLASS}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden animate-pulse h-[560px]" />
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loading && repos.length === 0 && hasToken && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5">
+                <Github size={26} className="text-zinc-700" />
+              </div>
+              <h3 className="text-base font-semibold text-zinc-400 mb-2">{t.noReposSyncedYet}</h3>
+              <p className="text-zinc-600 text-sm mb-6 max-w-xs">
+                {t.clickSyncReposEmpty}
               </p>
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl transition-colors"
+              >
+                <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+                {syncing ? t.syncing : t.syncRepos}
+              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Sync error */}
-        {syncError && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 mb-4 text-xs text-red-400">
-            <AlertCircle size={12} />
-            {syncError}
-          </div>
-        )}
-
-        {/* Loading skeletons */}
-        {loading && (
-          <div className="masonry-grid">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden animate-pulse aspect-[9/16]" />
-            ))}
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loading && repos.length === 0 && hasToken && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5">
-              <Github size={26} className="text-zinc-700" />
+          {/* Repos grid — CSS Grid for uniform row alignment */}
+          {!loading && repos.length > 0 && (
+            <div className={REPO_GRID_CLASS}>
+              {repos.map((repo, index) => (
+                <LazyRepoCard key={repo.id} repo={repo} index={index} />
+              ))}
             </div>
-            <h3 className="text-base font-semibold text-zinc-400 mb-2">{t.noReposSyncedYet}</h3>
-            <p className="text-zinc-600 text-sm mb-6 max-w-xs">
-              {t.clickSyncReposEmpty}
-            </p>
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl transition-colors"
-            >
-              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
-              {syncing ? t.syncing : t.syncRepos}
-            </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Repos masonry — CSS columns for true variable-height masonry */}
-        {!loading && repos.length > 0 && (
-          <div className={`${REPO_GRID_CLASS} gap-3`}>
-            {repos.map((repo) => (
-              <RepoCard key={repo.id} repo={repo} />
-            ))}
-          </div>
-        )}
+        {/* Related repos sidebar */}
+        <RelatedReposSidebar />
       </div>
     </div>
   )

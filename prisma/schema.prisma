@@ -93,10 +93,13 @@ model Repo {
   language        String?
   topics          String   @default("[]")   // JSON array
   readmeContent   String?                    // Raw README (truncated to 50k chars)
-  features        String?                    // AI-extracted JSON
+  features        String?                    // AI-extracted JSON (English)
   useCases        String?                    // AI-extracted JSON
   techStack       String?                    // AI-extracted JSON array
-  summary         String?                    // AI-generated 1-2 sentence summary
+  summary         String?                    // AI-generated 1-2 sentence summary (English)
+  featuresZh     String?                    // Chinese translation of features
+  useCasesZh      String?                    // Chinese translation of use cases
+  summaryZh       String?                    // Chinese translation of summary
   readmeAnalyzedAt DateTime?
   importedAt      DateTime @default(now())
   bookmarkRepos   BookmarkRepo[]
@@ -114,4 +117,23 @@ model BookmarkRepo {
 
   @@id([bookmarkId, repoId])
   @@index([repoId])
+}
+
+model RecommendedRepo {
+  id          String   @id @default(cuid())
+  fullName    String
+  description String?
+  stars       Int      @default(0)
+  forks       Int      @default(0)
+  language    String?
+  topics      String   @default("[]")
+  url         String
+  mode        String   // "similar" | "trending" | "by-language"
+  added       Boolean  @default(false)
+  savedAt     DateTime @default(now())
+
+  @@unique([fullName, mode])
+  @@index([fullName])
+  @@index([savedAt])
+  @@index([mode])
 }

@@ -13,7 +13,7 @@ const BATCH_DELAY_MS = 150  // between requests to avoid rate limits
 
 async function getToken(): Promise<string | null> {
   const setting = await prisma.setting.findUnique({
-    where: { key: 'githubPersonalAccessToken' },
+    where: { key: 'github_personal_access_token' },
   })
   return setting?.value?.trim() || null
 }
@@ -143,6 +143,20 @@ export interface SyncResult {
   errors: string[]
 }
 
+// ── Resolve t.co shortlink to final URL ───────────────────────────────────────
+
+async function resolveTcoUrl(tcoUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(tcoUrl, {
+      method: 'HEAD',
+      redirect: 'follow',
+    })
+    return res.url
+  } catch {
+    return null
+  }
+}
+
 // ── Main sync function ────────────────────────────────────────────────────────
 
 /**
@@ -172,7 +186,7 @@ export async function syncReposFromBookmarks(
   const reposToSync: { owner: string; repo: string; bookmarkId: string; url: string }[] = []
 
   for (const bm of bookmarks) {
-    // From entities.urls in rawJson
+    // From entities.urls in rawJson (expanded_url may point to GitHub even if not unwound)
     try {
       if (bm.rawJson) {
         const raw = JSON.parse(bm.rawJson)
@@ -188,7 +202,7 @@ export async function syncReposFromBookmarks(
       }
     } catch { /* ignore parse errors */ }
 
-    // From tweet text (regex for github.com links not caught by entities)
+    // From tweet text — match github.com links AND t.co shortlinks (resolve them below)
     const textMatches = bm.text.matchAll(/https?:\/\/(?:www\.)?github\.com\/([a-zA-Z0-9._-]+)\/([a-zA-Z0-9._-]+)/gi)
     for (const m of textMatches) {
       const owner = m[1]
@@ -198,6 +212,23 @@ export async function syncReposFromBookmarks(
         seen.add(fullKey)
         reposToSync.push({ owner, repo, bookmarkId: bm.id, url: m[0] })
       }
+    }
+
+    // Also resolve t.co shortlinks from text that may point to GitHub
+    // (Bird import strips t.co from entities.urls, so we resolve them on-demand)
+    const tcoMatches = bm.text.matchAll(/https?:\/\/t\.co\/[a-zA-Z0-9]+/gi)
+    for (const m of tcoMatches) {
+      const tcoUrl = m[0]
+      try {
+        const resolved = await resolveTcoUrl(tcoUrl)
+        if (resolved) {
+          const parsed = parseGitHubUrl(resolved)
+          if (parsed && !seen.has(parsed.repo.toLowerCase())) {
+            seen.add(parsed.repo.toLowerCase())
+            reposToSync.push({ ...parsed, bookmarkId: bm.id, url: resolved })
+          }
+        }
+      } catch { /* ignore resolution errors */ }
     }
   }
 

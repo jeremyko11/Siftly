@@ -13,7 +13,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'ai-resources',
     color: '#8b5cf6',
     description:
-      'Artificial intelligence, machine learning, LLMs, ChatGPT, Claude, Gemini, Grok, Midjourney, Sora, AI agents, RAG, fine-tuning, prompts, vector databases, model benchmarks, AI startups, AI safety, multimodal models',
+      '人工智能、机器学习、LLM大模型、ChatGPT、Claude、Gemini、Grok、Midjourney、Sora、AI Agent、RAG、向量数据库、模型训练、微调、提示词工程、多模态模型、AI安全、AI创业、AI工具、AI应用',
     isAiGenerated: false,
   },
   {
@@ -21,7 +21,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'finance-crypto',
     color: '#f59e0b',
     description:
-      'Cryptocurrency, Bitcoin, Ethereum, Solana, DeFi protocols, NFTs, on-chain activity, crypto trading, altcoins, airdrops, memecoin, Web3 development, smart contracts, DAOs, Layer 2, Uniswap, pump.fun, wallets, blockchain analytics',
+      '加密货币、比特币、以太坊、Solana、DeFi、NFT、链上活动、数字货币交易、山寨币、空投、Memecoin、Web3开发、智能合约、DAO、Layer2、钱包、区块链',
     isAiGenerated: false,
   },
   {
@@ -29,7 +29,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'dev-tools',
     color: '#06b6d4',
     description:
-      'Software engineering, coding, GitHub, open source, frameworks, APIs, databases, DevOps, CI/CD, terminal tools, debugging, system design, backend, frontend, mobile dev, Rust, Go, TypeScript, Python, Vercel, Supabase, Docker',
+      '软件开发、编程、GitHub开源、框架、API、数据库、DevOps、CI/CD、终端工具、调试、系统设计、后端、前端、移动开发、Rust、Go、TypeScript、Python、Docker、Vercel、Supabase',
     isAiGenerated: false,
   },
   {
@@ -37,7 +37,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'finance-investing',
     color: '#10b981',
     description:
-      'Stock market, equities, options trading, macroeconomics, Federal Reserve, interest rates, hedge funds, venture capital, private equity, earnings reports, portfolio management, real estate investing, commodities, forex, financial charts — NOT crypto',
+      '股票、基金、宏观经济、美联储、利率、对冲基金、风险投资、私募、房产投资、理财规划、外汇、大宗商品（不含加密货币）',
     isAiGenerated: false,
   },
   {
@@ -45,7 +45,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'startups-business',
     color: '#f97316',
     description:
-      'Startups, founders, entrepreneurship, SaaS, product-market fit, fundraising, VC, angel investing, growth hacking, B2B, marketing, sales, revenue, bootstrapping, Y Combinator, acquisition, company building, business strategy',
+      '创业、创始人精神、SaaS、产品市场契合、融资、VC、风险投资、增长黑客、B2B营销、销售、收入、Y Combinator、并购、商业战略、副业',
     isAiGenerated: false,
   },
   {
@@ -53,7 +53,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'news',
     color: '#6366f1',
     description:
-      'Breaking news, current events, US politics, global politics, geopolitics, government policy, elections, regulation, tech policy, AI regulation, crypto regulation, war and conflict, international relations, journalism, investigative reporting',
+      '新闻时事、美国政治、国际关系、地缘政治、政府政策、选举、科技政策、AI监管、战争冲突、国际新闻、调查报道',
     isAiGenerated: false,
   },
   {
@@ -61,7 +61,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'design',
     color: '#ec4899',
     description:
-      'UI/UX design, product design, visual design, Figma, typography, design systems, motion design, brand identity, user research, product strategy, wireframes, creative tools, color theory, web design, app design',
+      'UI设计、UX设计、视觉设计、Figma、字体排版、设计系统、动效设计、品牌设计、用户研究、产品策略、线框图、创意工具、色彩理论',
     isAiGenerated: false,
   },
   {
@@ -69,7 +69,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'health-wellness',
     color: '#14b8a6',
     description:
-      'Fitness, nutrition, longevity, biohacking, sleep, mental health, supplements, workout routines, diet, weight loss, strength training, cognitive performance, stress management, meditation, gut health, lab results, wearables like Whoop and Oura',
+      '健身、营养、延寿、生物黑客、睡眠、心理健康、补剂、减肥、力量训练、认知提升、压力管理、冥想、肠道健康、可穿戴设备',
     isAiGenerated: false,
   },
   {
@@ -77,7 +77,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'security-privacy',
     color: '#ef4444',
     description:
-      'Cybersecurity, hacking, exploits, vulnerabilities, OPSEC, privacy tools, VPNs, encryption, threat intelligence, social engineering, phishing, malware, zero-days, pen testing, CTF, data breaches, authentication, identity security',
+      '网络安全、黑客技术、漏洞利用、OPSEC、隐私保护、VPN、加密技术、威胁情报、社会工程学、网络钓鱼、恶意软件、零日漏洞、CTF、数据泄露',
     isAiGenerated: false,
   },
   {
@@ -85,7 +85,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'science-research',
     color: '#3b82f6',
     description:
-      'Scientific research, papers, discoveries, physics, biology, neuroscience, space exploration, climate, chemistry, medical breakthroughs, academic studies, emerging technology, robotics, quantum computing, energy, materials science',
+      '科学研究、学术论文、物理、生物、神经科学、太空探索、气候、化学、医学突破、学术研究、新兴技术、机器人、量子计算、能源',
     isAiGenerated: false,
   },
   {
@@ -93,7 +93,7 @@ const DEFAULT_CATEGORIES = [
     slug: 'productivity',
     color: '#a855f7',
     description:
-      'Productivity systems, time management, habits, focus techniques, note-taking, second brain, deep work, mental models, PKM tools like Obsidian and Notion, life optimization, workflows, automation, delegation',
+      '效率系统、时间管理、习惯养成、专注技巧、笔记方法、双链笔记、深度工作、心智模型、Obsidian、Notion、第二大脑、人生优化、工作流、自动化',
     isAiGenerated: false,
   },
   {
@@ -101,14 +101,14 @@ const DEFAULT_CATEGORIES = [
     slug: 'funny-memes',
     color: '#eab308',
     description:
-      'Memes, jokes, satire, humor, viral content, relatable posts, shitposts, funny screenshots, comedy threads, parody, ironic takes — content whose primary purpose is to be funny or entertaining',
+      '表情包、笑话、讽刺、幽默、病毒内容、转发抽奖、搞笑截图、段子、恶搞、主要是娱乐或搞笑目的的内容',
     isAiGenerated: false,
   },
   {
     name: 'General',
     slug: 'general',
     color: '#64748b',
-    description: "Miscellaneous content that doesn't clearly fit any other category — use sparingly, only when no other category applies",
+    description: '不属于其他分类的综合性内容，尽量少用此分类',
     isAiGenerated: false,
   },
 ] as const
@@ -171,36 +171,34 @@ function buildCategorizationPrompt(
     return entry
   })
 
-  return `You are an expert librarian categorizing Twitter/X bookmarks into a personal knowledge base. Your categorizations directly power search and discovery — accuracy is critical.
+  return `You are an expert librarian categorizing Twitter/X bookmarks into a personal knowledge base. Your categorizations directly power search and discovery.
 
 AVAILABLE CATEGORIES:
 ${categoriesList}
 
-CATEGORIZATION RULES:
-- Assign 1-3 categories per bookmark — only what CLEARLY applies
-- Confidence 0.5-1.0: use 0.9+ for obvious fits, 0.6-0.8 for plausible, 0.5 for borderline
-- Priority: specific categories beat "general" — only use "general" when truly nothing else fits
-- Use ALL signals: tweet text, image analysis, OCR text inside images, hashtags, detected tools, semantic AI tags
+RULES:
+- Every bookmark must receive at least ONE category — do NOT leave any bookmark uncategorized
+- Assign 1-3 categories per bookmark based on what APPLIES
+- If a bookmark discusses AI tools, LLM applications, or AI tech → ai-resources
+- If a bookmark mentions code, GitHub, APIs, developer workflows → dev-tools
+- If a bookmark is about making money, side projects, SaaS, startup content → startups-business
+- If a bookmark is about health, fitness, nutrition, biohacking → health-wellness
+- If a bookmark is about security, hacking, privacy tools → security-privacy
+- If a bookmark is about finance/investment topics → finance-investing or finance-crypto
+- If a bookmark is about news, current events, politics → news
+- If a bookmark is about design, UI, product → design
+- If a bookmark is about science, research papers → science-research
+- If a bookmark is about productivity, habits, time management → productivity
+- If a bookmark is humorous, meme-like, or entertaining → funny-memes
+- Confidence: 0.9+ for strong signals, 0.7+ for moderate, 0.5+ for weak but present
+- Use ALL signals: tweet text, image analysis, hashtags, detected tools, semantic AI tags
 
-SIGNAL WEIGHTING (use all, not just text):
-- Image shows financial chart, price action, wallet UI → finance-crypto (even if tweet text is vague)
-- Image shows code, terminal, GitHub, a dev tool UI → dev-tools
-- Image is clearly a meme format or labeled as humor/satire → funny-memes with high confidence
-- Tools field mentions GitHub/Vercel/React/etc → dev-tools likely applies
-- aiTags field is pre-computed context — trust it heavily for category signals
-- Hashtags like #bitcoin #eth → finance-crypto; #buildinpublic #saas → dev-tools/productivity
-
-AVOID:
-- Over-assigning "general" — it's a catch-all, not a default
-- Conflating news about AI with AI resources (a news thread about OpenAI is "news", not "ai-resources")
-- Assigning categories based only on passing mentions (a dev tweet that mentions a price = dev-tools, not finance)
-
-Return ONLY valid JSON — no markdown, no explanation:
+Return ONLY valid JSON — no markdown, no explanation. Every bookmark MUST appear in the output with at least one category assignment:
 [{
   "tweetId": "123",
   "assignments": [
-    {"category": "ai-resources", "confidence": 0.92},
-    {"category": "dev-tools", "confidence": 0.71}
+    {"category": "ai-resources", "confidence": 0.85},
+    {"category": "dev-tools", "confidence": 0.62}
   ]
 }]
 
@@ -208,7 +206,10 @@ BOOKMARKS:
 ${JSON.stringify(tweetData, null, 1)}`
 }
 
-function parseCategorizationResponse(text: string, validSlugs: Set<string>): CategorizationResult[] {
+function parseCategorizationResponse(text: string, validSlugs: Set<string>, tweetIds: string[]): CategorizationResult[] {
+  const GENERAL_SLUG = 'general'
+  const hasGeneral = validSlugs.has(GENERAL_SLUG)
+
   // Try multiple strategies to extract JSON array
   let jsonText: string | null = null
 
@@ -218,32 +219,48 @@ function parseCategorizationResponse(text: string, validSlugs: Set<string>): Cat
 
   // Strategy 2: try to find JSON-like objects wrapped in code fences
   if (!jsonText) {
-    const codeBlockMatch = text.match(/```(?:json)?\s*(\[[\s\S]*?)\s*```/)
-    if (codeBlockMatch) jsonText = codeBlockMatch[1]
+    const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\}\s*)\s*```/)
+    if (codeBlockMatch) jsonText = '[' + codeBlockMatch[1] + ']'
   }
 
-  // Strategy 3: brute-force — find first '[' and last ']'
+  // Strategy 3: try single object format
   if (!jsonText) {
-    const first = text.indexOf('[')
-    const last = text.lastIndexOf(']')
+    const first = text.indexOf('{')
+    const last = text.lastIndexOf('}')
     if (first !== -1 && last > first) {
-      jsonText = text.slice(first, last + 1)
+      const candidate = '[' + text.slice(first, last + 1) + ']'
+      try { JSON.parse(candidate); jsonText = candidate } catch { /* not valid JSON */ }
     }
   }
 
-  if (!jsonText) throw new Error('No JSON array found in AI response')
+  if (!jsonText) {
+    // No valid JSON found — return general for all bookmarks in this batch
+    console.warn('[categorize] No JSON in AI response, falling back to general for', tweetIds.length, 'bookmarks')
+    return tweetIds.map((tweetId) => ({
+      tweetId,
+      assignments: hasGeneral ? [{ category: GENERAL_SLUG, confidence: 0.5 }] : [],
+    }))
+  }
 
   let parsed: unknown
   try {
     parsed = JSON.parse(jsonText)
   } catch {
-    throw new Error('Failed to parse AI response as JSON')
+    // JSON parse failed — return general for all bookmarks in this batch
+    console.warn('[categorize] JSON parse failed, falling back to general for', tweetIds.length, 'bookmarks')
+    return tweetIds.map((tweetId) => ({
+      tweetId,
+      assignments: hasGeneral ? [{ category: GENERAL_SLUG, confidence: 0.5 }] : [],
+    }))
   }
 
-  if (!Array.isArray(parsed)) throw new Error('Claude response is not an array')
-
-  const GENERAL_SLUG = 'general'
-  const hasGeneral = validSlugs.has(GENERAL_SLUG)
+  if (!Array.isArray(parsed)) {
+    // Not an array — return general for all bookmarks
+    return tweetIds.map((tweetId) => ({
+      tweetId,
+      assignments: hasGeneral ? [{ category: GENERAL_SLUG, confidence: 0.5 }] : [],
+    }))
+  }
 
   return (parsed as Record<string, unknown>[]).map((item): CategorizationResult => {
     const tweetId = String(item.tweetId ?? '')
@@ -274,6 +291,8 @@ export async function categorizeBatch(
 ): Promise<CategorizationResult[]> {
   if (bookmarks.length === 0) return []
 
+  const tweetIds = bookmarks.map((b) => b.tweetId)
+  const validSlugs = new Set(allSlugs)
   const prompt = buildCategorizationPrompt(bookmarks, categoryDescriptions, allSlugs)
   const provider = await getProvider()
 
@@ -283,7 +302,7 @@ export async function categorizeBatch(
       const result = await codexPrompt(prompt, { timeoutMs: 60_000 })
       if (result.success && result.data) {
         try {
-          return parseCategorizationResponse(result.data, new Set(allSlugs))
+          return parseCategorizationResponse(result.data, validSlugs, tweetIds)
         } catch (parseErr) {
           console.warn('[categorize] Codex CLI response parse failed, falling back to SDK:', parseErr)
         }
@@ -299,7 +318,7 @@ export async function categorizeBatch(
       const result = await claudePrompt(prompt, { model: cliModel, timeoutMs: 60_000 })
       if (result.success && result.data) {
         try {
-          return parseCategorizationResponse(result.data, new Set(allSlugs))
+          return parseCategorizationResponse(result.data, validSlugs, tweetIds)
         } catch (parseErr) {
           console.warn('[categorize] CLI response parse failed, falling back to SDK:', parseErr)
         }
@@ -322,7 +341,7 @@ export async function categorizeBatch(
 
   if (!response.text) throw new Error('No text content in AI response')
 
-  return parseCategorizationResponse(response.text, new Set(allSlugs))
+  return parseCategorizationResponse(response.text, validSlugs, tweetIds)
 }
 
 export async function writeCategoryResults(results: CategorizationResult[]): Promise<void> {
