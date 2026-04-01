@@ -24,6 +24,17 @@ export interface Translations {
   dmOnX: string
   runAiAutoCategorize: string
 
+  // Auth / Login
+  loginTitle: string
+  loginDescription: string
+  loginPassword: string
+  loginPasswordPlaceholder: string
+  loginButton: string
+  loginLoggingIn: string
+  loginError: string
+  enterPassword: string
+  redirectingToHome: string
+
   // Dashboard
   goodMorning: string
   goodAfternoon: string
@@ -401,6 +412,17 @@ export interface Translations {
 }
 
 const en: Translations = {
+  // Auth / Login
+  loginTitle: 'Welcome to Siftly',
+  loginDescription: 'Enter your password to access your bookmarks',
+  loginPassword: 'Password',
+  loginPasswordPlaceholder: 'Enter your password',
+  loginButton: 'Sign in',
+  loginLoggingIn: 'Signing in…',
+  loginError: 'Invalid password',
+  enterPassword: 'Please enter your password',
+  redirectingToHome: 'Redirecting to home…',
+
   dashboard: 'Dashboard',
   githubRepos: 'GitHub Repos',
   myRepos: 'My Repos',
@@ -779,6 +801,17 @@ const en: Translations = {
 }
 
 const zh: Translations = {
+  // Auth / Login
+  loginTitle: '欢迎使用 Siftly',
+  loginDescription: '输入密码以访问您的书签',
+  loginPassword: '密码',
+  loginPasswordPlaceholder: '请输入密码',
+  loginButton: '登录',
+  loginLoggingIn: '登录中…',
+  loginError: '密码错误',
+  enterPassword: '请输入密码',
+  redirectingToHome: '正在跳转…',
+
   dashboard: '仪表盘',
   githubRepos: 'GitHub 仓库',
   myRepos: '我的仓库',

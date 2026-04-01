@@ -10,6 +10,7 @@ interface BookmarkRow {
   source: string
   tweetCreatedAt: Date | null
   importedAt: Date
+  rawJson: string | null
   mediaItems: MediaItemRow[]
   categories: CategoryJoin[]
 }
@@ -30,6 +31,11 @@ interface CategoryJoin {
   }
 }
 
+interface BookmarkExportRow extends BookmarkRow {
+  hashtags: string[]
+  urls: string[]
+}
+
 async function fetchBookmarksFull(where?: object): Promise<BookmarkRow[]> {
   return prisma.bookmark.findMany({
     where,
@@ -41,6 +47,34 @@ async function fetchBookmarksFull(where?: object): Promise<BookmarkRow[]> {
     },
     orderBy: { importedAt: 'desc' },
   }) as Promise<BookmarkRow[]>
+}
+
+function extractHashtagsAndUrls(rawJson: string | null): { hashtags: string[]; urls: string[] } {
+  let hashtags: string[] = []
+  let urls: string[] = []
+
+  if (rawJson) {
+    try {
+      const raw = JSON.parse(rawJson)
+      urls = (raw.entities?.urls ?? []).map((u: { unwound_url?: string; expanded_url?: string; url?: string }) => u.unwound_url ?? u.expanded_url ?? u.url ?? '').filter(Boolean)
+      hashtags = (raw.entities?.hashtags ?? []).map((h: { text?: string }) => h.text ?? '').filter(Boolean)
+    } catch {}
+  }
+
+  return { hashtags, urls }
+}
+
+async function fetchBookmarksFullWithEntities(where?: object): Promise<BookmarkExportRow[]> {
+  const bookmarks = await fetchBookmarksFull(where)
+
+  return bookmarks.map((bookmark) => {
+    const { hashtags, urls } = extractHashtagsAndUrls(bookmark.rawJson)
+    return {
+      ...bookmark,
+      hashtags,
+      urls,
+    }
+  })
 }
 
 function formatCsvField(value: string): string {
@@ -175,12 +209,53 @@ export async function exportAllBookmarksCsv(): Promise<string> {
   return [headers, ...rows].join('\n')
 }
 
+// New CSV export with full fields: tweetId, text, authorHandle, authorName, tweetCreatedAt, source, categories, hashtags, urls, importedAt
+export async function exportAllBookmarksCsvNew(): Promise<string> {
+  const bookmarks = await fetchBookmarksFullWithEntities()
+
+  const headers = buildCsvRow([
+    'tweetId',
+    'text',
+    'authorHandle',
+    'authorName',
+    'tweetCreatedAt',
+    'source',
+    'categories',
+    'hashtags',
+    'urls',
+    'importedAt',
+  ])
+
+  const rows = bookmarks.map((bookmark) => {
+    const categories = bookmark.categories.map((c) => c.category.name).join('; ')
+    const hashtags = bookmark.hashtags.join('; ')
+    const urls = bookmark.urls.join('; ')
+    const dateStr = bookmark.tweetCreatedAt?.toISOString() ?? ''
+    const importedAtStr = bookmark.importedAt.toISOString()
+
+    return buildCsvRow([
+      bookmark.tweetId,
+      bookmark.text,
+      bookmark.authorHandle,
+      bookmark.authorName,
+      dateStr,
+      bookmark.source,
+      categories,
+      hashtags,
+      urls,
+      importedAtStr,
+    ])
+  })
+
+  return [headers, ...rows].join('\n')
+}
+
 export async function exportBookmarksJson(bookmarkIds?: string[]): Promise<string> {
   const where = bookmarkIds && bookmarkIds.length > 0
     ? { id: { in: bookmarkIds } }
     : undefined
 
-  const bookmarks = await fetchBookmarksFull(where)
+  const bookmarks = await fetchBookmarksFullWithEntities(where)
 
   const output = bookmarks.map((bookmark) => ({
     tweetId: bookmark.tweetId,
@@ -195,6 +270,8 @@ export async function exportBookmarksJson(bookmarkIds?: string[]): Promise<strin
       slug: c.category.slug,
       color: c.category.color,
     })),
+    hashtags: bookmark.hashtags,
+    urls: bookmark.urls,
     mediaItems: bookmark.mediaItems.map((m) => ({
       type: m.type,
       url: m.url,

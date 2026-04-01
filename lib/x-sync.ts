@@ -1,5 +1,6 @@
 import prisma from '@/lib/db'
 import { fetchPage, parsePage, importTweets } from '@/lib/twitter-api'
+import { decryptSafe } from '@/lib/crypto'
 
 // ── Sync ────────────────────────────────────────────────────────────────────────
 
@@ -111,7 +112,9 @@ async function runScheduledSync() {
     }
 
     console.log(`[x-sync] Running scheduled sync at ${new Date().toISOString()}`)
-    const result = await syncBookmarks(authSetting.value, ct0Setting.value)
+    const authToken = decryptSafe(authSetting.value)
+    const ct0 = decryptSafe(ct0Setting.value)
+    const result = await syncBookmarks(authToken, ct0)
     console.log(`[x-sync] Sync complete: ${result.imported} imported, ${result.skipped} skipped`)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

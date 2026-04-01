@@ -44,6 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const limit = Math.min(parseIntParam(searchParams.get('limit'), DEFAULT_LIMIT), MAX_LIMIT)
   const skip = (page - 1) * limit
   const orderDir = sortParam === 'oldest' ? 'asc' : 'desc'
+  const includeRaw = searchParams.get('includeRaw') === '1'
 
   const where: Record<string, unknown> = {}
 
@@ -97,8 +98,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       prisma.bookmark.count({ where }),
     ])
 
-    const formatted = await Promise.all(bookmarks.map(async (bookmark) => {
-      // Extract expanded URLs and hashtags from rawJson
+    // Pass 1: Extract all URLs and hashtags from each bookmark (no unwrapping yet)
+    const extracted = bookmarks.map((bookmark) => {
       let urls: string[] = []
       let hashtags: string[] = []
       if (bookmark.rawJson) {
@@ -112,17 +113,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       if (urls.length === 0) {
         const urlMatches = bookmark.text.match(/https?:\/\/[^\s]+/g) ?? []
         urls = urlMatches.filter((u) => !u.includes('t.co/'))
-        // If still empty (all were t.co), keep t.co URLs so the card shows something
         if (urls.length === 0 && urlMatches.length > 0) {
           urls = urlMatches
         }
       }
-      // Resolve t.co shortlinks to their final destination
-      urls = await unwrapTcoUrls(urls)
       if (hashtags.length === 0) {
         const tagMatches = bookmark.text.match(/#[\w\u4e00-\u9fff]+/g) ?? []
         hashtags = tagMatches.map((t) => t.replace(/^#/, ''))
       }
+      return { urls, hashtags }
+    })
+
+    // Pass 2: Collect ALL t.co URLs from ALL bookmarks and unwrap in a single batch
+    // Track offset range for each bookmark so we can slice unwrapped results back
+    const allUrls: string[] = []
+    const bookmarkUrlRanges: { start: number; count: number }[] = []
+    for (let bi = 0; bi < extracted.length; bi++) {
+      const start = allUrls.length
+      allUrls.push(...extracted[bi].urls)
+      bookmarkUrlRanges.push({ start, count: extracted[bi].urls.length })
+    }
+    const unwrappedAll = await unwrapTcoUrls(allUrls)
+
+    // Pass 3: Build formatted response, mapping unwrapped URLs back to each bookmark
+    const formatted = bookmarks.map((bookmark, bi) => {
+      const { hashtags } = extracted[bi]
+      const { start, count } = bookmarkUrlRanges[bi]
+      const urls = unwrappedAll.slice(start, start + count)
       return {
         id: bookmark.id,
         tweetId: bookmark.tweetId,
@@ -145,11 +162,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           color: bc.category.color,
           confidence: bc.confidence,
         })),
-        rawJson: bookmark.rawJson ?? undefined,
+        rawJson: includeRaw ? (bookmark.rawJson ?? undefined) : undefined,
         urls,
         hashtags,
       }
-    }))
+    })
 
     return NextResponse.json({
       bookmarks: formatted,

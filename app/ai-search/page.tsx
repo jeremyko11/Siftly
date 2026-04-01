@@ -10,6 +10,7 @@ import { useI18n } from '@/lib/i18n-context'
 interface AIBookmark extends BookmarkWithMedia {
   aiScore: number
   aiReason: string
+  highlight: string | null
 }
 
 const EXAMPLES = [
@@ -240,6 +241,12 @@ export default function AISearchPage() {
           <div className="flex flex-col gap-6">
             {results.map((b) => (
               <div key={b.id}>
+                {b.highlight && (
+                  <div
+                    className="mb-2 px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/40 text-xs text-zinc-300 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: b.highlight }}
+                  />
+                )}
                 {b.aiReason && (
                   <div className="flex items-start gap-1.5 mb-2 px-1">
                     <Sparkles size={10} className="text-indigo-400 shrink-0 mt-0.5" />

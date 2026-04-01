@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import BookmarkCard from '@/components/bookmark-card'
 import type { BookmarkWithMedia } from '@/lib/types'
+import { Check } from 'lucide-react'
 
 const COL_BREAKPOINTS = [
   { minWidth: 2560, cols: 6 },
@@ -20,22 +21,52 @@ function getColCount(screenW: number): number {
   return 1
 }
 
+interface SelectionOverlayProps {
+  bookmark: BookmarkWithMedia
+  isSelected: boolean
+  onToggle: (id: string) => void
+}
+
+function SelectionOverlay({ bookmark, isSelected, onToggle }: SelectionOverlayProps) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation()
+        onToggle(bookmark.id)
+      }}
+      className={`absolute top-3 left-3 z-10 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+        isSelected
+          ? 'bg-indigo-600 border-indigo-600 text-white'
+          : 'bg-black/40 border-white/30 text-white hover:bg-black/60 hover:border-white/50'
+      }`}
+      aria-label={isSelected ? 'Deselect bookmark' : 'Select bookmark'}
+    >
+      {isSelected && <Check size={12} strokeWidth={3} />}
+    </button>
+  )
+}
+
 export default function MasonryGrid({
   bookmarks,
   total,
   loadingMore,
   hasMore,
   onLoadMore,
+  selectedIds = [],
+  onToggleSelect,
 }: {
   bookmarks: BookmarkWithMedia[]
   total: number
   loadingMore: boolean
   hasMore: boolean
   onLoadMore: () => void
+  selectedIds?: string[]
+  onToggleSelect?: (id: string) => void
 }) {
   const [colCount, setColCount] = useState(3)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const fetchingRef = useRef(false)
+  const isSelectionActive = selectedIds.length > 0 && onToggleSelect !== undefined
 
   // Track viewport width for responsive column count
   useEffect(() => {
@@ -78,7 +109,14 @@ export default function MasonryGrid({
     <div>
       <div className={`${colClass} gap-3`}>
         {bookmarks.map((bookmark) => (
-          <div key={bookmark.id} className="break-inside-avoid mb-3">
+          <div key={bookmark.id} className="break-inside-avoid mb-3 relative">
+            {isSelectionActive && onToggleSelect && (
+              <SelectionOverlay
+                bookmark={bookmark}
+                isSelected={selectedIds.includes(bookmark.id)}
+                onToggle={onToggleSelect}
+              />
+            )}
             <BookmarkCard bookmark={bookmark} />
           </div>
         ))}

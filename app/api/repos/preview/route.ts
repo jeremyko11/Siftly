@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { fetchRepoMetadata, fetchReadme } from '@/lib/github-client'
+import { decryptSafe } from '@/lib/crypto'
 import { resolveAIClient } from '@/lib/ai-client'
 import { getProvider } from '@/lib/settings'
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const patSetting = await prisma.setting.findUnique({
       where: { key: 'github_personal_access_token' },
     })
-    const token = patSetting?.value?.trim()
+    const token = patSetting?.value ? decryptSafe(patSetting.value).trim() : null
     if (!token) {
       return NextResponse.json({ error: 'GitHub PAT not configured' }, { status: 401 })
     }

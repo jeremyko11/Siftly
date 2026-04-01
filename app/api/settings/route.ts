@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { invalidateSettingsCache } from '@/lib/settings'
+import { encrypt, decryptSafe } from '@/lib/crypto'
 
 function maskKey(raw: string | null): string | null {
   if (!raw) return null
@@ -206,10 +207,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (birdToSave.length > 0) {
     try {
       for (const { key, value } of birdToSave) {
+        const encrypted = encrypt(value!.trim())
         await prisma.setting.upsert({
           where: { key },
-          update: { value: value!.trim() },
-          create: { key, value: value!.trim() },
+          update: { value: encrypted },
+          create: { key, value: encrypted },
         })
       }
       return NextResponse.json({ saved: true })
@@ -229,11 +231,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Invalid githubPersonalAccessToken value' }, { status: 400 })
     }
     const trimmed = githubPersonalAccessToken.trim()
+    const encrypted = encrypt(trimmed)
     try {
       await prisma.setting.upsert({
         where: { key: 'github_personal_access_token' },
-        update: { value: trimmed },
-        create: { key: 'github_personal_access_token', value: trimmed },
+        update: { value: encrypted },
+        create: { key: 'github_personal_access_token', value: encrypted },
       })
       return NextResponse.json({ saved: true })
     } catch (err) {

@@ -228,7 +228,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } as const
 
   // Try FTS5 first (fast, ranked by relevance); fall back to LIKE on error/empty
-  const ftsIds = keywords.length > 0 ? await ftsSearch(keywords) : []
+  const ftsResults = keywords.length > 0 ? await ftsSearch(keywords) : []
+  const ftsIds = ftsResults.map((r) => r.id)
+  const ftsHighlights = new Map(ftsResults.map((r) => [r.id, r.highlight]))
   const useFts = ftsIds.length > 0
 
   // Build LIKE-based fallback conditions (used when FTS5 is empty/unavailable)
@@ -414,6 +416,7 @@ Constraints:
           id: bc.category.id, name: bc.category.name, slug: bc.category.slug,
           color: bc.category.color, confidence: bc.confidence,
         })),
+        highlight: ftsHighlights.get(b.id) ?? null,
         aiScore: matchMap.get(b.id)?.score ?? 0,
         aiReason: matchMap.get(b.id)?.reason ?? '',
       }

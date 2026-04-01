@@ -9,6 +9,7 @@ datasource db {
 
 model Bookmark {
   id            String    @id @default(cuid())
+  userId        String    @default("default")
   tweetId       String    @unique
   text          String
   authorHandle  String
@@ -33,6 +34,7 @@ model Bookmark {
 
 model Category {
   id          String   @id @default(cuid())
+  userId      String   @default("default")
   name        String   @unique
   slug        String   @unique
   color       String   @default("#6366f1")
@@ -54,6 +56,7 @@ model BookmarkCategory {
 
 model MediaItem {
   id           String   @id @default(cuid())
+  userId       String   @default("default")
   bookmarkId   String
   type         String   // photo | video | gif
   url          String
@@ -68,6 +71,7 @@ model MediaItem {
 
 model ImportJob {
   id             String   @id @default(cuid())
+  userId         String   @default("default")
   filename       String
   status         String   @default("pending") // pending | processing | done | error
   totalCount     Int      @default(0)
@@ -80,10 +84,12 @@ model ImportJob {
 model Setting {
   key   String @id
   value String
+  userId String @default("default")
 }
 
 model Repo {
   id              String   @id @default(cuid())
+  userId          String   @default("default")
   owner           String
   name            String
   fullName        String   @unique
@@ -121,6 +127,7 @@ model BookmarkRepo {
 
 model RecommendedRepo {
   id          String   @id @default(cuid())
+  userId      String   @default("default")
   fullName    String
   description String?
   stars       Int      @default(0)

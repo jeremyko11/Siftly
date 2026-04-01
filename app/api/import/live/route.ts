@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { startScheduler, stopScheduler, isSchedulerRunning } from '@/lib/x-sync'
+import { encrypt, decryptSafe } from '@/lib/crypto'
 
 /** GET — return current X credentials status + schedule config */
 export async function GET() {
@@ -59,13 +60,13 @@ export async function POST(request: NextRequest) {
       await Promise.all([
         prisma.setting.upsert({
           where: { key: 'x_auth_token' },
-          update: { value: trimmedAuth },
-          create: { key: 'x_auth_token', value: trimmedAuth },
+          update: { value: encrypt(trimmedAuth) },
+          create: { key: 'x_auth_token', value: encrypt(trimmedAuth) },
         }),
         prisma.setting.upsert({
           where: { key: 'x_ct0' },
-          update: { value: trimmedCt0 },
-          create: { key: 'x_ct0', value: trimmedCt0 },
+          update: { value: encrypt(trimmedCt0) },
+          create: { key: 'x_ct0', value: encrypt(trimmedCt0) },
         }),
       ])
     }

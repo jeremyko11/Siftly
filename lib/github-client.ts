@@ -4,6 +4,7 @@
  */
 
 import prisma from '@/lib/db'
+import { decryptSafe } from '@/lib/crypto'
 
 const GITHUB_API = 'https://api.github.com'
 const README_MAX_CHARS = 50_000
@@ -15,7 +16,8 @@ async function getToken(): Promise<string | null> {
   const setting = await prisma.setting.findUnique({
     where: { key: 'github_personal_access_token' },
   })
-  return setting?.value?.trim() || null
+  if (!setting?.value) return null
+  return decryptSafe(setting.value).trim() || null
 }
 
 // ── GitHub API fetch ────────────────────────────────────────────────────────────

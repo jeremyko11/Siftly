@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { syncBookmarks, isSyncing } from '@/lib/x-sync'
+import { decryptSafe } from '@/lib/crypto'
 
 /** POST — trigger a manual sync using stored credentials */
 export async function POST() {
@@ -21,7 +22,7 @@ export async function POST() {
       )
     }
 
-    const result = await syncBookmarks(authSetting.value, ct0Setting.value)
+    const result = await syncBookmarks(decryptSafe(authSetting.value), decryptSafe(ct0Setting.value))
     return NextResponse.json(result)
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Sync failed'

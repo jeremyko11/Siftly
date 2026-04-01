@@ -11,10 +11,14 @@ import {
   ChevronDown,
   ArrowUpDown,
   Loader2,
+  Trash2,
+  FolderPlus,
+  Check,
+  Loader,
 } from 'lucide-react'
 import * as Select from '@radix-ui/react-select'
 import MasonryGrid from '@/components/MasonryGrid'
-import type { BookmarkWithMedia, BookmarksResponse } from '@/lib/types'
+import type { BookmarkWithMedia, BookmarksResponse, Category } from '@/lib/types'
 import { useI18n } from '@/lib/i18n-context'
 
 const PAGE_SIZE = 24
@@ -148,6 +152,107 @@ function BookmarksPageInner() {
   const pageRef = useRef(1)
   const fetchingRef = useRef(false)
 
+  // Batch selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false)
+  const [actionLoading, setActionLoading] = useState<'delete' | 'categorize' | null>(null)
+
+  // Load categories for the dropdown
+  useEffect(() => {
+    fetch('/api/categories')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.categories) setCategories(data.categories)
+      })
+      .catch(() => {})
+  }, [])
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    )
+  }
+
+  function selectAll() {
+    if (selectedIds.length === bookmarks.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(bookmarks.map((b) => b.id))
+    }
+  }
+
+  function clearSelection() {
+    setSelectedIds([])
+  }
+
+  async function deleteSelected() {
+    if (selectedIds.length === 0) return
+    setActionLoading('delete')
+    try {
+      const res = await fetch('/api/bookmarks/batch-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds }),
+      })
+      if (res.status === 401) {
+        // Auth not implemented yet - just clear selection
+        clearSelection()
+        return
+      }
+      if (res.ok) {
+        // Remove deleted bookmarks from the list
+        setBookmarks((prev) => prev.filter((b) => !selectedIds.includes(b.id)))
+        setTotal((prev) => Math.max(0, prev - selectedIds.length))
+        clearSelection()
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  async function categorizeSelected(categoryId: string) {
+    if (selectedIds.length === 0) return
+    setActionLoading('categorize')
+    setCategoryDropdownOpen(false)
+    try {
+      const res = await fetch('/api/bookmarks/batch-categorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, categoryId }),
+      })
+      if (res.status === 401) {
+        clearSelection()
+        return
+      }
+      if (res.ok) {
+        // Update local state to reflect new categories
+        const cat = categories.find((c) => c.id === categoryId)
+        setBookmarks((prev) =>
+          prev.map((b) => {
+            if (selectedIds.includes(b.id) && cat) {
+              const alreadyHas = b.categories.some((c) => c.id === categoryId)
+              if (!alreadyHas) {
+                return {
+                  ...b,
+                  categories: [...b.categories, { id: cat.id, name: cat.name, slug: cat.slug, color: cat.color, confidence: 1.0 }],
+                }
+              }
+            }
+            return b
+          })
+        )
+        clearSelection()
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   function doFetch(page: number, append: boolean) {
     if (fetchingRef.current) return false
     fetchingRef.current = true
@@ -178,6 +283,7 @@ function BookmarksPageInner() {
   // Initial load + filter changes
   useEffect(() => {
     pageRef.current = 1
+    clearSelection()
     doFetch(1, false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.q, filters.category, filters.mediaType, filters.source, filters.sort, filters.uncategorized])
@@ -227,6 +333,7 @@ function BookmarksPageInner() {
   const hasActiveFilters = !!(filters.q || filters.category || filters.mediaType || filters.source || filters.sort !== 'newest' || filters.uncategorized)
 
   const sortLabel = sortOptions.find((o) => o.value === filters.sort)?.label ?? t.newestFirst
+  const isSelectionActive = selectedIds.length > 0
 
   return (
     <div className="flex flex-col h-full">
@@ -235,6 +342,21 @@ function BookmarksPageInner() {
       <div className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-800/60">
         <div className="px-6 md:px-8 py-4">
           <div className="flex items-center gap-3">
+
+            {/* Select all checkbox - shown when items exist */}
+            {!loading && bookmarks.length > 0 && (
+              <button
+                onClick={selectAll}
+                className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                  selectedIds.length === bookmarks.length && bookmarks.length > 0
+                    ? 'bg-indigo-600 border-indigo-600 text-white'
+                    : 'border-zinc-700 text-transparent hover:border-zinc-500'
+                }`}
+                title={selectedIds.length === bookmarks.length ? 'Deselect all' : 'Select all'}
+              >
+                {selectedIds.length === bookmarks.length && bookmarks.length > 0 && <Check size={11} strokeWidth={3} />}
+              </button>
+            )}
 
             {/* Search */}
             <div className="relative flex-1">
@@ -400,6 +522,8 @@ function BookmarksPageInner() {
             loadingMore={loadingMore}
             hasMore={bookmarks.length < total}
             onLoadMore={handleLoadMore}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
           />
         )}
 
@@ -410,6 +534,79 @@ function BookmarksPageInner() {
           </p>
         )}
       </div>
+
+      {/* ── Floating action bar ── */}
+      {isSelectionActive && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 shadow-2xl shadow-black/50">
+          <span className="text-sm text-zinc-200 font-medium">
+            {selectedIds.length} selected
+          </span>
+
+          <div className="w-px h-5 bg-zinc-700" />
+
+          {/* Delete */}
+          <button
+            onClick={deleteSelected}
+            disabled={actionLoading !== null}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all disabled:opacity-50"
+          >
+            {actionLoading === 'delete' ? (
+              <Loader size={13} className="animate-spin" />
+            ) : (
+              <Trash2 size={13} />
+            )}
+            Delete
+          </button>
+
+          {/* Categorize */}
+          <div className="relative">
+            <button
+              onClick={() => setCategoryDropdownOpen((v) => !v)}
+              disabled={actionLoading !== null}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-all disabled:opacity-50"
+            >
+              {actionLoading === 'categorize' ? (
+                <Loader size={13} className="animate-spin" />
+              ) : (
+                <FolderPlus size={13} />
+              )}
+              Add to category
+              <ChevronDown size={11} />
+            </button>
+
+            {categoryDropdownOpen && (
+              <div className="absolute bottom-full mb-2 left-0 z-50 bg-zinc-900 border border-zinc-700 rounded-xl p-1 shadow-2xl shadow-black/50 min-w-[160px]">
+                {categories.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-zinc-500">No categories</p>
+                ) : (
+                  categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => categorizeSelected(cat.id)}
+                      className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="truncate">{cat.name}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Cancel / Clear */}
+          <button
+            onClick={clearSelection}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-all"
+          >
+            <X size={13} />
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   )
 }

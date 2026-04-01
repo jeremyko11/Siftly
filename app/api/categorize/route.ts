@@ -16,7 +16,7 @@ import {
   BookmarkForEnrichment,
 } from '@/lib/vision-analyzer'
 import { backfillEntities } from '@/lib/rawjson-extractor'
-import { rebuildFts } from '@/lib/fts'
+import { rebuildFts, getFtsLastSync } from '@/lib/fts'
 
 type Stage = 'vision' | 'entities' | 'enrichment' | 'categorize' | 'parallel'
 
@@ -416,7 +416,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     if (!shouldAbort()) {
-      await rebuildFts().catch((err) => console.error('FTS rebuild error:', err))
+      const lastSyncAt = await getFtsLastSync().catch(() => null)
+      await rebuildFts(lastSyncAt ?? undefined).catch((err) => console.error('FTS rebuild error:', err))
     }
   })()
     .then(() => {

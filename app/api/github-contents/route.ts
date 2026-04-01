@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { decryptSafe } from '@/lib/crypto'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const patSetting = await prisma.setting.findUnique({
       where: { key: 'github_personal_access_token' },
     })
-    const token = patSetting?.value?.trim() || process.env.GITHUB_TOKEN
+    const token = patSetting?.value ? decryptSafe(patSetting.value).trim() : process.env.GITHUB_TOKEN
 
     const headers: Record<string, string> = {
       Accept: 'application/vnd.github.v3+json',

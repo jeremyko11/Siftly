@@ -113,7 +113,7 @@ function SearchCard({ repo, onAdd, added, cache }: { repo: SearchRepo; onAdd: (r
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-gray-500 truncate font-bold">{repo.fullName.split('/')[0]}</p>
-          <p className="text-xs font-black text-gray-800 truncate">{repo.fullName.split('/')[1]}</p>
+          <p className="text-xs font-black text-zinc-100 truncate">{repo.fullName.split('/')[1]}</p>
         </div>
         <button
           onClick={handleAdd}
@@ -191,7 +191,7 @@ function HistoryCard({ repo, cache }: { repo: HistoryRepo; cache: Map<string, st
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-gray-500 truncate font-bold">{repo.fullName.split('/')[0]}</p>
-          <p className="text-xs font-black text-gray-800 truncate">{repo.fullName.split('/')[1]}</p>
+          <p className="text-xs font-black text-zinc-100 truncate">{repo.fullName.split('/')[1]}</p>
         </div>
         <span className="shrink-0 flex items-center gap-1 text-[9px] text-zinc-600 font-bold">
           <Clock size={9} />
@@ -278,7 +278,7 @@ function PreviewCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] text-zinc-400 truncate font-bold">{preview.fullName.split('/')[0]}</p>
-            <p className="text-sm font-black text-zinc-900 truncate">{preview.fullName.split('/')[1]}</p>
+            <p className="text-sm font-black text-zinc-100 truncate">{preview.fullName.split('/')[1]}</p>
           </div>
           <span className="flex items-center gap-0.5 text-[10px] text-zinc-400 font-bold shrink-0">
             <Star size={10} className="fill-amber-500 text-amber-500" />

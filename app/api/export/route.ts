@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { exportAllBookmarksCsv, exportBookmarksJson, exportCategoryAsZip } from '@/lib/exporter'
+import { exportAllBookmarksCsvNew, exportBookmarksJson, exportCategoryAsZip } from '@/lib/exporter'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url)
-  const type = searchParams.get('type')
+  const format = searchParams.get('format')
   const categorySlug = searchParams.get('category')
 
-  if (!type) {
-    return NextResponse.json(
-      { error: 'Missing required query param: type (csv | json | zip)' },
-      { status: 400 }
-    )
-  }
+  // Default to JSON if no format specified
+  const effectiveFormat = format ?? 'json'
 
-  if (type === 'csv') {
+  if (effectiveFormat === 'csv') {
     try {
-      const csv = await exportAllBookmarksCsv()
+      const csv = await exportAllBookmarksCsvNew()
       return new NextResponse(csv, {
         status: 200,
         headers: {
@@ -32,7 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  if (type === 'json') {
+  if (effectiveFormat === 'json') {
     try {
       const json = await exportBookmarksJson()
       return new NextResponse(json, {
@@ -51,7 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  if (type === 'zip') {
+  if (effectiveFormat === 'zip') {
     try {
       let zipBuffer: Buffer
 
@@ -67,10 +63,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         })
       }
 
-      // ZIP of all bookmarks — export category by category; for simplicity export all JSON as zip
-      const json = await exportBookmarksJson()
+      // ZIP containing both CSV and JSON
+      const [csv, json] = await Promise.all([
+        exportAllBookmarksCsvNew(),
+        exportBookmarksJson(),
+      ])
+
       const JSZip = (await import('jszip')).default
       const zip = new JSZip()
+      zip.file('bookmarks.csv', csv)
       zip.file('bookmarks.json', json)
       zipBuffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
 
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         status: 200,
         headers: {
           'Content-Type': 'application/zip',
-          'Content-Disposition': 'attachment; filename="bookmarks-all.zip"',
+          'Content-Disposition': 'attachment; filename="bookmarks.zip"',
         },
       })
     } catch (err) {
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   return NextResponse.json(
-    { error: `Unknown export type: ${type}. Use csv, json, or zip.` },
+    { error: `Unknown format: ${format}. Use csv, json, or zip.` },
     { status: 400 }
   )
 }
