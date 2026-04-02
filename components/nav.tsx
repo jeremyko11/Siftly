@@ -128,6 +128,7 @@ export default function Nav() {
     return localStorage.getItem('nav-collections-open') !== 'false'
   })
   const [pipeline, setPipeline] = useState<PipelineStatus | null>(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const navItems = getNavItems(t)
 
@@ -169,7 +170,7 @@ export default function Nav() {
       .then((d: { categories: CategoryItem[] }) => setCategories(d.categories ?? []))
       .catch(() => {})
 
-    // Poll pipeline status every 3s to show global indicator
+    // Poll pipeline status every 15s to show global indicator (reduced for mobile performance)
     function pollPipeline() {
       fetch('/api/categorize')
         .then((r) => r.json())
@@ -177,14 +178,46 @@ export default function Nav() {
         .catch(() => {})
     }
     pollPipeline()
-    const interval = setInterval(pollPipeline, 3000)
+    const interval = setInterval(pollPipeline, 15000)
     return () => clearInterval(interval)
   }, [])
 
   const visibleCats = showAllCats ? categories : categories.slice(0, 8)
 
   return (
-    <aside className="flex flex-col bg-zinc-900 border-r border-zinc-800/50 shrink-0 sticky top-0 h-screen overflow-y-auto" style={{ width: '228px' }}>
+    <>
+      {/* Mobile toggle button — only visible on small screens */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="fixed top-3 left-3 z-50 p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 lg:hidden"
+        aria-label="Open menu"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`flex flex-col bg-zinc-900 border-r border-zinc-800/50 shrink-0 overflow-y-auto z-50 transition-transform duration-200 fixed top-0 left-0 h-screen w-[228px] ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:translate-x-0`}>
+
+      {/* Mobile close button */}
+      <button
+        onClick={() => setMobileOpen(false)}
+        className="absolute top-3 right-3 p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 lg:hidden"
+        aria-label="Close menu"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
 
       {/* Brand */}
       <div className="flex items-center justify-center gap-2 px-4 py-3.5 border-b border-zinc-800/50">
@@ -362,5 +395,6 @@ export default function Nav() {
 
       <SponsorFooter />
     </aside>
+    </>
   )
 }

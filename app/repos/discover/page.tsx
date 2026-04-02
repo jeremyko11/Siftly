@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Sparkles, TrendingUp, FolderOpen, RefreshCw, Loader2, ExternalLink, Star, GitFork, Plus, Check, History, Compass } from 'lucide-react'
+import { Sparkles, TrendingUp, FolderOpen, RefreshCw, Loader2, ExternalLink, Star, GitFork, Plus, Check, History, Compass, Search } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -70,6 +70,7 @@ const TABS = [
   { key: 'similar', label: '相关推荐', icon: Sparkles },
   { key: 'trending', label: '热门仓库', icon: TrendingUp },
   { key: 'by-language', label: '按语言', icon: FolderOpen },
+  { key: 'search', label: '搜索', icon: Search },
   { key: 'history', label: '历史记录', icon: History },
 ] as const
 
@@ -220,6 +221,12 @@ export default function DiscoverPage() {
   const [tabVersion, setTabVersion] = useState<Record<string, number>>({})
   const translateCache = useRef(new Map<string, string>()).current
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchTotal, setSearchTotal] = useState(0)
+  const [searchSort, setSearchSort] = useState('stars')
+  const searchInputRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   // Fetch repos when tab or refresh version changes
   useEffect(() => {
     // Immediately clear old data so tab switch feels instant
@@ -239,6 +246,12 @@ export default function DiscoverPage() {
       return
     }
 
+    if (tab === 'search') {
+      // Search tab doesn't auto-fetch; wait for user input
+      setLoading(false)
+      return
+    }
+
     const version = tabVersion[tab] ?? 0
     const params = new URLSearchParams({ mode: tab, refresh: String(version) })
     fetch(`/api/github-related?${params}`)
@@ -247,6 +260,37 @@ export default function DiscoverPage() {
       .catch(() => setRepos([]))
       .finally(() => setLoading(false))
   }, [tab, tabVersion])
+
+  function handleSearch(q: string) {
+    setSearchQuery(q)
+    if (searchInputRef.current) clearTimeout(searchInputRef.current)
+    if (!q.trim()) { setRepos([]); setSearchTotal(0); return }
+    searchInputRef.current = setTimeout(() => {
+      setLoading(true)
+      fetch(`/api/github-search?q=${encodeURIComponent(q.trim())}&sort=${searchSort}`)
+        .then((r) => r.json())
+        .then((d: { repos?: SearchRepo[]; total?: number }) => {
+          setRepos(d.repos ?? [])
+          setSearchTotal(d.total ?? 0)
+        })
+        .catch(() => setRepos([]))
+        .finally(() => setLoading(false))
+    }, 400)
+  }
+
+  // Re-fetch when sort changes on search tab (immediate, no debounce)
+  useEffect(() => {
+    if (tab !== 'search' || !searchQuery.trim()) return
+    setLoading(true)
+    fetch(`/api/github-search?q=${encodeURIComponent(searchQuery.trim())}&sort=${searchSort}`)
+      .then((r) => r.json())
+      .then((d: { repos?: SearchRepo[]; total?: number }) => {
+        setRepos(d.repos ?? [])
+        setSearchTotal(d.total ?? 0)
+      })
+      .catch(() => setRepos([]))
+      .finally(() => setLoading(false))
+  }, [searchSort, tab])
 
   function handleAdded(repo: SearchRepo) {
     setAdded((prev) => new Set([...prev, repo.fullName]))
@@ -269,7 +313,45 @@ export default function DiscoverPage() {
               <h1 className="text-lg font-bold text-zinc-100">发现仓库</h1>
               <p className="text-xs text-zinc-500">AI 推荐 · 前沿技术 · 持续更新</p>
             </div>
-            {tab !== 'history' && (
+            {tab === 'search' && (
+              <div className="ml-auto flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="搜索 GitHub 仓库..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    autoFocus
+                    className="pl-8 pr-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder:text-zinc-500 text-sm focus:outline-none focus:border-indigo-500/60 transition-all w-56"
+                  />
+                </div>
+                {/* Sort buttons */}
+                <div className="flex items-center gap-1 bg-zinc-800 rounded-xl p-1 border border-zinc-700">
+                  {[
+                    { key: '', label: '最佳匹配' },
+                    { key: 'stars', label: '收藏数' },
+                    { key: 'updated', label: '更新时间' },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setSearchSort(key)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                        searchSort === key
+                          ? 'bg-indigo-500/20 text-indigo-300'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {searchTotal > 0 && (
+                  <span className="text-xs text-zinc-500">{searchTotal.toLocaleString()} 个结果</span>
+                )}
+              </div>
+            )}
+            {tab !== 'history' && tab !== 'search' && (
               <button
                 onClick={() => setTabVersion((prev) => ({ ...prev, [tab]: (prev[tab] ?? 0) + 1 }))}
                 className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-zinc-100 border border-zinc-700/50 hover:border-zinc-600 transition-all"
@@ -338,13 +420,13 @@ export default function DiscoverPage() {
         {!loading && displayedRepos.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800/50 flex items-center justify-center mb-4">
-              <Compass size={22} className="text-zinc-700" />
+              {tab === 'search' ? <Search size={22} className="text-zinc-700" /> : <Compass size={22} className="text-zinc-700" />}
             </div>
             <h3 className="text-base font-semibold text-zinc-500 mb-1.5">
-              {tab === 'history' ? '暂无历史记录' : '暂无推荐'}
+              {tab === 'history' ? '暂无历史记录' : tab === 'search' ? (searchQuery ? '未找到相关仓库' : '输入关键词搜索 GitHub') : '暂无推荐'}
             </h3>
             <p className="text-sm text-zinc-600 max-w-xs">
-              {tab === 'history' ? '浏览推荐后会自动保存到这里' : '点击刷新按钮获取新的推荐'}
+              {tab === 'history' ? '浏览推荐后会自动保存到这里' : tab === 'search' ? (searchQuery ? '尝试其他关键词' : '例如：React admin dashboard、Python AI agent') : '点击刷新按钮获取新的推荐'}
             </p>
           </div>
         )}
