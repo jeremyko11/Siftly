@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ExternalLink, Star, Sparkles, RotateCw, ChevronDown, ChevronUp, Folder, FileCode, Loader2 } from 'lucide-react'
+import { ExternalLink, Star, Sparkles, RotateCw, ChevronDown, ChevronUp, Folder, FileCode, Loader2, Copy, Check } from 'lucide-react'
 import type { Repo } from '@/lib/types'
 import { useI18n } from '@/lib/i18n-context'
 
@@ -112,6 +112,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [localAnalysis, setLocalAnalysis] = useState<LocalAnalysis | null>(null)
+  const [copied, setCopied] = useState(false)
   const cache = useRef(new Map<string, string>()).current
   const isAnalyzed = !!(repo.features && repo.features.length > 0)
 
@@ -141,6 +142,14 @@ export default function RepoCard({ repo }: RepoCardProps) {
     } finally {
       setAnalyzing(false)
     }
+  }
+
+  async function handleCopyUrl() {
+    try {
+      await navigator.clipboard.writeText(repo.url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
   }
 
   return (
@@ -296,6 +305,15 @@ export default function RepoCard({ repo }: RepoCardProps) {
           </svg>
           {t.viewOnGithub}
         </a>
+
+        <button
+          onClick={handleCopyUrl}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-zinc-100 transition-colors"
+          title="复制仓库地址"
+        >
+          {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+          {copied ? '已复制' : '复制链接'}
+        </button>
 
         {hasAnyAnalysis ? (
           <button

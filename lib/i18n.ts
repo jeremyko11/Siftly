@@ -165,6 +165,8 @@ export interface Translations {
   exportAsJson: string
   spreadsheetCompatible: string
   fullDataWithFields: string
+  exportToObsidian: string
+  exportToObsidianDesc: string
   permanentlyDeleteAll: string
   clearAll: string
   areYouSure: string
@@ -347,6 +349,9 @@ export interface Translations {
   aiSearchSubtitle: string
   aiPoweredSearch: string
   noBookmarksMatchedDescription: string
+  internetSearch: string
+  internetSearchTooltip: string
+  searchingInternet: string
 
   // Categories
   categories: string
@@ -409,6 +414,32 @@ export interface Translations {
 
   // AI Search
   findAnything: string
+
+  // Review / Spaced Repetition
+  review: string
+  reviewTitle: string
+  reviewDescription: string
+  dueToday: string
+  allReviews: string
+  upcomingReviews: string
+  noReviewsDue: string
+  noReviewsDueDesc: string
+  addToReview: string
+  addToReviewDesc: string
+  reviewAgain: string
+  reviewHard: string
+  reviewGood: string
+  nextReviewIn: string
+  completedToday: string
+  totalScheduled: string
+  streak: string
+  reviewRemoved: string
+  addedToReview: string
+  removedFromReview: string
+  showAnswer: string
+  addToReviewQueue: string
+  addAllUncategorized: string
+  removeFromReview: string
 }
 
 const en: Translations = {
@@ -560,6 +591,8 @@ const en: Translations = {
   exportAsJson: 'Export as JSON',
   spreadsheetCompatible: 'Spreadsheet-compatible format',
   fullDataWithFields: 'Full data with all fields',
+  exportToObsidian: 'Export to Obsidian',
+  exportToObsidianDesc: 'Markdown with YAML frontmatter, organized by category — copy to your vault',
   permanentlyDeleteAll: 'Permanently delete all imported bookmarks',
   clearAll: 'Clear all',
   areYouSure: 'Are you sure?',
@@ -740,6 +773,9 @@ const en: Translations = {
   aiSearchSubtitle: "Describe what you're looking for below.",
   aiPoweredSearch: 'AI-Powered Search',
   noBookmarksMatchedDescription: 'No bookmarks matched that description. Try different words.',
+  internetSearch: 'Internet',
+  internetSearchTooltip: 'Search the entire web instead of your bookmarks',
+  searchingInternet: 'Searching the web…',
 
   // Categories
   categories: 'Categories',
@@ -798,6 +834,32 @@ const en: Translations = {
 
   // AI Search
   findAnything: 'Find anything in your bookmarks',
+
+  // Review / Spaced Repetition
+  review: 'Review',
+  reviewTitle: 'Spaced Repetition',
+  reviewDescription: 'Review your bookmarks using spaced repetition to truly retain what you save.',
+  dueToday: 'Due Today',
+  allReviews: 'All Reviews',
+  upcomingReviews: 'Upcoming',
+  noReviewsDue: 'No reviews due',
+  noReviewsDueDesc: 'All caught up! Add bookmarks to your review queue to see them here.',
+  addToReview: 'Add to Review',
+  addToReviewDesc: 'Add bookmarks to your spaced repetition queue',
+  reviewAgain: 'Again',
+  reviewHard: 'Hard',
+  reviewGood: 'Good',
+  nextReviewIn: 'Next review in',
+  completedToday: 'Reviewed Today',
+  totalScheduled: 'Total Scheduled',
+  streak: 'Streak',
+  reviewRemoved: 'Removed from review queue',
+  addedToReview: 'Added to review queue',
+  removedFromReview: 'Removed from review queue',
+  showAnswer: 'Show Answer',
+  addToReviewQueue: 'Add to Review Queue',
+  addAllUncategorized: 'Add All Uncategorized',
+  removeFromReview: 'Remove from Review',
 }
 
 const zh: Translations = {
@@ -949,6 +1011,8 @@ const zh: Translations = {
   exportAsJson: '导出为 JSON',
   spreadsheetCompatible: '电子表格兼容格式',
   fullDataWithFields: '包含所有字段的完整数据',
+  exportToObsidian: '导出到 Obsidian',
+  exportToObsidianDesc: 'YAML frontmatter 的 Markdown，按分类组织 — 复制到你的 vault',
   permanentlyDeleteAll: '永久删除所有已导入的书签',
   clearAll: '清除全部',
   areYouSure: '确定吗？',
@@ -1129,6 +1193,9 @@ const zh: Translations = {
   aiSearchSubtitle: '在下方描述你要查找的内容。',
   aiPoweredSearch: 'AI 驱动搜索',
   noBookmarksMatchedDescription: '没有书签匹配此描述。请尝试不同的关键词。',
+  internetSearch: '互联网',
+  internetSearchTooltip: '搜索整个互联网而非书签',
+  searchingInternet: '正在搜索互联网…',
 
   // Categories
   categories: '分类',
@@ -1187,6 +1254,32 @@ const zh: Translations = {
 
   // AI Search
   findAnything: '在你的书签中查找任何内容',
+
+  // Review / Spaced Repetition
+  review: '复习',
+  reviewTitle: '间隔重复',
+  reviewDescription: '使用间隔重复复习你的书签，真正记住你收藏的内容。',
+  dueToday: '今日待复习',
+  allReviews: '所有复习',
+  upcomingReviews: '即将到来',
+  noReviewsDue: '没有待复习的书签',
+  noReviewsDueDesc: '太棒了！将书签添加到复习队列，它们就会出现在这里。',
+  addToReview: '添加到复习',
+  addToReviewDesc: '将书签添加到间隔重复队列',
+  reviewAgain: '重来',
+  reviewHard: '困难',
+  reviewGood: '顺利',
+  nextReviewIn: '下次复习于',
+  completedToday: '今日已复习',
+  totalScheduled: '队列总数',
+  streak: '连续',
+  reviewRemoved: '已从复习队列移除',
+  addedToReview: '已添加到复习队列',
+  removedFromReview: '已从复习队列移除',
+  showAnswer: '显示答案',
+  addToReviewQueue: '添加到复习队列',
+  addAllUncategorized: '添加所有未分类',
+  removeFromReview: '从复习队列移除',
 }
 
 export const translations: Record<Language, Translations> = { en, zh }

@@ -78,7 +78,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         where,
         skip,
         take: limit,
-        orderBy: [{ tweetCreatedAt: orderDir }, { importedAt: orderDir }],
+        orderBy: [{ importedAt: orderDir }, { tweetCreatedAt: orderDir }],
         include: {
           mediaItems: true,
           categories: {

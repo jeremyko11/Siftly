@@ -24,6 +24,7 @@ import {
   Sun,
   Moon,
   Github,
+  BookOpen,
 } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
 import { type Language } from '@/lib/i18n'
@@ -686,6 +687,11 @@ function DataSection({ t }: { t: ReturnType<typeof useI18n>['t'] }) {
           label={t.exportAsJson}
           href="/api/export?type=json"
           description={t.fullDataWithFields}
+        />
+        <ExportButton
+          label={t.exportToObsidian}
+          href="/api/export/obsidian"
+          description={t.exportToObsidianDesc}
         />
       </div>
     </Section>

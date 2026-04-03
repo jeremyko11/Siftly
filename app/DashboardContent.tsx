@@ -186,35 +186,9 @@ export default function DashboardContent({ data }: DashboardContentProps) {
         />
       </div>
 
-      {/* Recently Added */}
-      {data.recentBookmarks.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium mb-0.5">{t.latest}</p>
-              <h2 className="text-xl font-semibold text-zinc-100">{t.recentlyAdded}</h2>
-            </div>
-            <Link
-              href="/bookmarks"
-              className="flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
-            >
-              {t.viewAll}
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="masonry-grid">
-            {data.recentBookmarks.map((bookmark) => (
-              <div key={bookmark.id} className="masonry-item">
-                <BookmarkCard bookmark={bookmark} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Top Categories */}
       {data.topCategories.length > 0 && (
-        <section className="pb-8">
+        <section>
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium mb-0.5">{t.browseByTopic}</p>
@@ -245,6 +219,32 @@ export default function DashboardContent({ data }: DashboardContentProps) {
                   {cat.count}
                 </span>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recently Added */}
+      {data.recentBookmarks.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium mb-0.5">{t.latest}</p>
+              <h2 className="text-xl font-semibold text-zinc-100">{t.recentlyAdded}</h2>
+            </div>
+            <Link
+              href="/bookmarks"
+              className="flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+            >
+              {t.viewAll}
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="masonry-grid">
+            {data.recentBookmarks.map((bookmark) => (
+              <div key={bookmark.id} className="masonry-item">
+                <BookmarkCard bookmark={bookmark} />
+              </div>
             ))}
           </div>
         </section>

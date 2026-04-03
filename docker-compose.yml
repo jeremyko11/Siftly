@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  siftly:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/prisma/dev.db
+    volumes:
+      - siftly_data:/app/prisma
+    restart: unless-stopped
+
+volumes:
+  siftly_data:

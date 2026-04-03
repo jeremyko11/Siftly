@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Siftly",
+    "slug": "siftly-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "scheme": "siftly",
+    "splash": {
+      "backgroundColor": "#18181b",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.siftly.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#18181b"
+      },
+      "package": "com.siftly.app",
+      "permissions": ["INTERNET"]
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}

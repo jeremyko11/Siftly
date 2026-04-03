@@ -25,7 +25,7 @@ const ALLOWED_OPENAI_MODELS = [
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const [anthropic, anthropicModel, provider, openai, openaiModel, xClientId, xClientSecret, xBirdAuthToken, xBirdCt0, githubPat] = await Promise.all([
+    const [anthropic, anthropicModel, provider, openai, openaiModel, xClientId, xClientSecret, xBirdAuthToken, xBirdCt0, githubPat, tavilyKey] = await Promise.all([
       prisma.setting.findUnique({ where: { key: 'anthropicApiKey' } }),
       prisma.setting.findUnique({ where: { key: 'anthropicModel' } }),
       prisma.setting.findUnique({ where: { key: 'aiProvider' } }),
@@ -36,6 +36,7 @@ export async function GET(): Promise<NextResponse> {
       prisma.setting.findUnique({ where: { key: 'x_bird_auth_token' } }),
       prisma.setting.findUnique({ where: { key: 'x_bird_ct0' } }),
       prisma.setting.findUnique({ where: { key: 'github_personal_access_token' } }),
+      prisma.setting.findUnique({ where: { key: 'tavilyApiKey' } }),
     ])
 
     return NextResponse.json({
@@ -52,6 +53,8 @@ export async function GET(): Promise<NextResponse> {
       hasBirdCredentials: !!xBirdAuthToken?.value && !!xBirdCt0?.value,
       githubPersonalAccessToken: maskKey(githubPat?.value ?? null),
       hasGithubToken: !!githubPat?.value,
+      tavilyApiKey: maskKey(tavilyKey?.value ?? null),
+      hasTavilyKey: !!tavilyKey?.value,
     })
   } catch (err) {
     console.error('Settings GET error:', err)

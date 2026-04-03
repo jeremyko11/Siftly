@@ -123,6 +123,7 @@ interface BookmarkForCategorization {
   semanticTags?: string[]
   hashtags?: string[]
   tools?: string[]
+  fetchedContent?: string
 }
 
 interface CategoryAssignment {
@@ -168,15 +169,19 @@ function buildCategorizationPrompt(
     if (b.semanticTags?.length) entry.aiTags = b.semanticTags.slice(0, 20).join(', ')
     if (b.hashtags?.length) entry.hashtags = b.hashtags.slice(0, 10).join(', ')
     if (b.tools?.length) entry.tools = b.tools.join(', ')
+    if (b.fetchedContent) entry.content = b.fetchedContent.slice(0, 3000)
     return entry
   })
 
   return `You are an expert librarian categorizing Twitter/X bookmarks into a personal knowledge base. Your categorizations directly power search and discovery.
 
+BOOKMARK CONTENT: Each bookmark entry may include a "content" field — this is the fetched content from external links (articles, YouTube videos, Reddit posts) associated with the bookmark. If present, this content is usually MORE informative than the tweet text alone. Use it as the PRIMARY signal when available.
+
 AVAILABLE CATEGORIES:
 ${categoriesList}
 
 RULES:
+- When a bookmark has a "content" field (fetched external content), use it INSTEAD OF the tweet text as the primary classification signal
 - Every bookmark must receive at least ONE category — do NOT leave any bookmark uncategorized
 - Assign 1-3 categories per bookmark based on what APPLIES
 - If a bookmark discusses AI tools, LLM applications, or AI tech → ai-resources
@@ -403,6 +408,7 @@ export function mapBookmarkForCategorization(b: {
   semanticTags: string | null
   entities: string | null
   mediaItems: { imageTags: string | null }[]
+  fetchedContent?: string | null
 }): BookmarkForCategorization {
   const allImageTags = b.mediaItems
     .map((m) => m.imageTags)
@@ -431,6 +437,7 @@ export function mapBookmarkForCategorization(b: {
     semanticTags,
     hashtags,
     tools,
+    fetchedContent: b.fetchedContent ?? undefined,
   }
 }
 
@@ -440,6 +447,7 @@ export const BOOKMARK_SELECT = {
   text: true,
   semanticTags: true,
   entities: true,
+  fetchedContent: true,
   mediaItems: { select: { imageTags: true } },
 } as const
 

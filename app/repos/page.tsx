@@ -18,7 +18,7 @@ export default function ReposPage() {
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [sort, setSort] = useState('stars')
+  const [sort, setSort] = useState('updated')
   const [hasToken, setHasToken] = useState(true)
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -195,8 +195,10 @@ export default function ReposPage() {
           )}
         </div>
 
-        {/* Related repos sidebar */}
-        <RelatedReposSidebar />
+        {/* Related repos sidebar — hidden on mobile so my repos fills the screen */}
+        <div className="hidden lg:block">
+          <RelatedReposSidebar />
+        </div>
       </div>
     </div>
   )

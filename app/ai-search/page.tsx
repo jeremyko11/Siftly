@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, Search, Loader2, BookMarked, AlertCircle, ImageIcon } from 'lucide-react'
+import { Sparkles, Search, Loader2, BookMarked, AlertCircle, ImageIcon, Globe, ExternalLink, GlobeIcon } from 'lucide-react'
 import BookmarkCard from '@/components/bookmark-card'
 import type { BookmarkWithMedia } from '@/lib/types'
 import { useI18n } from '@/lib/i18n-context'
@@ -11,6 +11,16 @@ interface AIBookmark extends BookmarkWithMedia {
   aiScore: number
   aiReason: string
   highlight: string | null
+}
+
+// Internet search result from /api/search/internet
+interface InternetResult {
+  title: string
+  url: string
+  description: string
+  content: string | null
+  aiSummary: string | null
+  aiRelevance: number
 }
 
 const EXAMPLES = [
@@ -31,6 +41,7 @@ export default function AISearchPage() {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<AIBookmark[]>([])
+  const [internetResults, setInternetResults] = useState<InternetResult[]>([])
   const [explanation, setExplanation] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -38,6 +49,7 @@ export default function AISearchPage() {
   const [imageStats, setImageStats] = useState<ImageStats | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [pipelineRunning, setPipelineRunning] = useState(false)
+  const [internetSearch, setInternetSearch] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -88,22 +100,40 @@ export default function AISearchPage() {
     setLoading(true)
     setError('')
     setResults([])
+    setInternetResults([])
     setExplanation('')
     setSearched(true)
     try {
-      const res = await fetch('/api/search/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim() }),
-      })
-      const data = (await res.json()) as {
-        bookmarks?: AIBookmark[]
-        explanation?: string
-        error?: string
+      if (internetSearch) {
+        // ── Internet search: server proxies Jina (bypasses browser VPN/DNS issues) ──
+        const aiRes = await fetch('/api/search/internet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query.trim() }),
+        })
+        const aiData = (await aiRes.json()) as {
+          results?: InternetResult[]
+          explanation?: string
+          error?: string
+        }
+        if (!aiRes.ok) throw new Error(aiData.error ?? 'Internet search failed')
+        setInternetResults(aiData.results ?? [])
+        setExplanation(aiData.explanation ?? '')
+      } else {
+        const res = await fetch('/api/search/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query.trim() }),
+        })
+        const data = (await res.json()) as {
+          bookmarks?: AIBookmark[]
+          explanation?: string
+          error?: string
+        }
+        if (!res.ok) throw new Error(data.error ?? 'Search failed')
+        setResults(data.bookmarks ?? [])
+        setExplanation(data.explanation ?? '')
       }
-      if (!res.ok) throw new Error(data.error ?? 'Search failed')
-      setResults(data.bookmarks ?? [])
-      setExplanation(data.explanation ?? '')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Search failed')
     } finally {
@@ -161,8 +191,24 @@ export default function AISearchPage() {
           ) : (
             <Sparkles size={14} />
           )}
-          {loading ? 'Searching\u2026' : 'Search'}
+          {loading ? (internetSearch ? t.searchingInternet : 'Searching\u2026') : 'Search'}
         </button>
+        {/* Internet search toggle */}
+        <div className="absolute bottom-3 left-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setInternetSearch((v) => !v)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+              internetSearch
+                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-zinc-200'
+            }`}
+            title={t.internetSearchTooltip}
+          >
+            <GlobeIcon size={12} />
+            {t.internetSearch}
+          </button>
+        </div>
       </div>
       <p className="text-xs text-zinc-600 mb-8 text-right">⌘+Enter to search</p>
 
@@ -222,14 +268,77 @@ export default function AISearchPage() {
       )}
 
       {/* Empty state */}
-      {searched && !loading && results.length === 0 && !error && (
+      {searched && !loading && results.length === 0 && internetResults.length === 0 && !error && (
         <div className="text-center py-16 text-zinc-600">
           <BookMarked size={36} className="mx-auto mb-3 opacity-30" />
-          <p>{t.noBookmarksMatchedDescription}</p>
+          <p>{internetSearch ? 'No web results found.' : t.noBookmarksMatchedDescription}</p>
         </div>
       )}
 
-      {/* Results */}
+      {/* Results — Internet search */}
+      {internetResults.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-zinc-400">{explanation}</p>
+            <span className="text-xs text-zinc-600">
+              {internetResults.length} web result{internetResults.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex flex-col gap-4">
+            {internetResults.map((r, i) => (
+              <div key={i} className="bg-zinc-900/60 border border-zinc-800/40 rounded-2xl p-5 hover:border-zinc-700/60 transition-all">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-bold text-zinc-200 truncate block hover:text-white transition-colors"
+                    >
+                      {r.title}
+                    </a>
+                    <p className="text-[11px] text-emerald-500/70 font-medium mt-0.5 truncate">{new URL(r.url).hostname}</p>
+                  </div>
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-indigo-500/20 hover:text-indigo-400 text-zinc-400 text-xs font-medium transition-all"
+                  >
+                    <ExternalLink size={10} />
+                    Open
+                  </a>
+                </div>
+                {r.description && (
+                  <p className="text-[13px] text-zinc-400 leading-relaxed line-clamp-2 mb-2">{r.description}</p>
+                )}
+                {r.aiSummary && (
+                  <div className="flex items-start gap-1.5 mb-2 px-3 py-2 rounded-xl bg-zinc-800/40 border border-zinc-700/30">
+                    <Sparkles size={10} className="text-indigo-400 shrink-0 mt-0.5" />
+                    <span className="text-xs text-indigo-300/80 leading-relaxed">{r.aiSummary}</span>
+                  </div>
+                )}
+                {/* Relevance bar */}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] text-zinc-600 font-medium">Relevance</span>
+                  <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.round(r.aiRelevance * 100)}%`,
+                        backgroundColor: r.aiRelevance > 0.7 ? '#22c55e' : r.aiRelevance > 0.4 ? '#f59e0b' : '#ef4444',
+                      }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-zinc-600 tabular-nums font-medium">{Math.round(r.aiRelevance * 100)}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Results — Local bookmarks */}
       {results.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">

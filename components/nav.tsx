@@ -18,6 +18,7 @@ import {
   Bookmark,
   Github,
   Compass,
+  Brain,
 } from 'lucide-react'
 
 interface NavItem {
@@ -31,6 +32,7 @@ function getNavItems(t: ReturnType<typeof useI18n>['t']): NavItem[] {
     { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
     { href: '/ai-search', labelKey: 'aiSearch', icon: Sparkles },
     { href: '/bookmarks', labelKey: 'browse', icon: Search },
+    { href: '/review', labelKey: 'review', icon: Brain },
     { href: '/repos', labelKey: 'myRepos', icon: Github },
     { href: '/repos/discover', labelKey: 'discover', icon: Compass },
     { href: '/mindmap', labelKey: 'mindmap', icon: GitBranch },
