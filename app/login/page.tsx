@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Loader2, Lock } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
 
-export default function LoginPage() {
+function LoginForm() {
   const { t } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -138,5 +138,36 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+function LoginFormSkeleton() {
+  const { t } = useI18n()
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600">
+              <Lock size={28} className="text-white" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-semibold text-zinc-100">{t.loginTitle}</h1>
+          <p className="mt-2 text-sm text-zinc-500">{t.loginDescription}</p>
+        </div>
+        <div className="space-y-4">
+          <div className="h-12 rounded-xl bg-zinc-800 animate-pulse" />
+          <div className="h-12 rounded-xl bg-zinc-800 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFormSkeleton />}>
+      <LoginForm />
+    </Suspense>
   )
 }
