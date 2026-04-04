@@ -1,0 +1,17 @@
+{
+  "$schema": "https://api.zeabur.com/schema.json",
+  "project": {
+    "name": "siftly"
+  },
+  "services": [
+    {
+      "name": "siftly",
+      "type": "dockerfile",
+      "source": {
+        "dockerfile": "./docker/Dockerfile"
+      },
+      "env": [],
+      "port": 3000
+    }
+  ]
+}

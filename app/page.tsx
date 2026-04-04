@@ -6,7 +6,7 @@ import type { BookmarkWithMedia } from '@/lib/types'
 
 const RECENT_QUERY = {
   take: 6,
-  orderBy: [{ importedAt: 'desc' as const }],
+  orderBy: [{ tweetCreatedAt: 'desc' as const }, { importedAt: 'desc' as const }],
   include: {
     mediaItems: { select: { id: true, type: true, url: true, thumbnailUrl: true } },
     categories: {

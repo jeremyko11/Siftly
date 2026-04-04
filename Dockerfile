@@ -1,7 +1,7 @@
-# Siftly Dockerfile for Railway
+# Siftly Dockerfile for Railway/Render
 FROM node:22-alpine AS builder
 
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN npm run build
 # Production
 FROM node:22-alpine AS runner
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache
 
 WORKDIR /app
 
@@ -33,7 +33,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/app/generated ./app/generated
 COPY --from=builder --chown=nextjs:nodejs /app/app/generated ./app/generated
 
 USER nextjs
